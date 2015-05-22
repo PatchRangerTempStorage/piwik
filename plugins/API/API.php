@@ -10,6 +10,8 @@ namespace Piwik\Plugins\API;
 
 use Piwik\API\Proxy;
 use Piwik\API\Request;
+use Piwik\Cache;
+use Piwik\CacheId;
 use Piwik\Columns\Dimension;
 use Piwik\Config;
 use Piwik\Container\StaticContainer;
@@ -103,6 +105,13 @@ class API extends \Piwik\Plugin\API
 
     public function getSegmentsMetadata($idSites = array(), $_hideImplementationData = true)
     {
+        $cache = Cache::getTransientCache();
+        $cachKey = CacheId::pluginAware('API.getSegmentsMetadata' . implode($idSites));
+
+        if ($cache->contains($cachKey)) {
+            return $cache->fetch($cachKey);
+        }
+
         $segments = array();
 
         foreach (Dimension::getAllDimensions() as $dimension) {
@@ -219,6 +228,9 @@ class API extends \Piwik\Plugin\API
         }
 
         usort($segments, array($this, 'sortSegments'));
+
+        $cache->save($cachKey, $segments);
+
         return $segments;
     }
 
@@ -549,8 +561,7 @@ class API extends \Piwik\Plugin\API
             }
 
             if (!isset($all[$category])) {
-                $all[$category] = new Category();
-                $all[$category]->setName($category);
+                $all[$category] = $this->createCategoryForName($category);
             }
 
             if (!$subcategory) {
@@ -558,15 +569,28 @@ class API extends \Piwik\Plugin\API
             }
 
             if (!$all[$category]->hasSubCategory($subcategory)) {
-                $subcat = new SubCategory();
-                $subcat->setName($subcategory);
-                $all[$category]->addSubCategory($subcat);
+                $all[$category]->addSubCategory($this->createSubCategoryForName($category, $subcategory));
             }
 
             $all[$category]->getSubCategory($subcategory)->addWidgetConfig($widgetConfig);
         }
 
         return $all;
+    }
+
+    private function createCategoryForName($categoryName)
+    {
+        $category = new Category();
+        $category->setName($categoryName);
+        return $category;
+    }
+
+    private function createSubCategoryForName($categoryName, $subCategoryName)
+    {
+        $subcategory = new SubCategory();
+        $subcategory->setCategory($categoryName);
+        $subcategory->setName($subCategoryName);
+        return $subcategory;
     }
 
     /**
@@ -619,8 +643,8 @@ class API extends \Piwik\Plugin\API
                         foreach ($widget->getWidgetConfigs() as $widgetConfig) {
                             $child = array(
                                 'name' => Piwik::translate($widgetConfig->getName()),
-                                'category' => $this->buildCategoryMetadata($category),
-                                'subcategory' => $this->buildSubCategoryMetadata($subcategory),
+                                'category' => $this->buildCategoryMetadata($this->createCategoryForName($widgetConfig->getCategory())),
+                                'subcategory' => $this->buildSubCategoryMetadata($this->createSubCategoryForName($widgetConfig->getCategory(), $widgetConfig->getSubCategory())),
                                 'module' => $widgetConfig->getModule(),
                                 'action' => $widgetConfig->getAction(),
                                 'parameters' => $this->buildWidgetParameters($widgetConfig),

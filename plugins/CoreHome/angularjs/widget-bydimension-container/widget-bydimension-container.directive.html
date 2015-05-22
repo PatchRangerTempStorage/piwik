@@ -4,7 +4,7 @@
         <div class='dimensionCategory' ng-repeat="(category, widgets) in widgetsByCategory">
             {{ category }}
             <ul class='listCircle'>
-                <li ng-repeat="widget in container.widgets"
+                <li ng-repeat="widget in widgets"
                     class="reportDimension"
                     ng-class="{activeDimension: $first && firstCategoryName===category}"
                     ng-click="selectWidget(widget)">

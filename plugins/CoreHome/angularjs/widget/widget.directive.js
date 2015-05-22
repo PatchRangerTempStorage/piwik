@@ -40,6 +40,18 @@
                         return '?' + currentHashStr.substr(1);
                     }
 
+                    scope.$on("$includeContentError", function(event, args){
+                        scope.loadFailed=true;
+                        scope.loading=false;
+                    });
+                    scope.$on("$includeContentLoaded", function(event, args){
+                        scope.loadFailed=false;
+                        scope.loading=false;
+                    });
+                    scope.$on("$includeContentRequested", function(event, args){
+                        scope.loading=true;
+                    });
+
                     if (!scope.widget.isContainer) {
                         // we want to render only if it is not a container
                         scope.widget.html_url = getFullWidgetUrl(scope.widget);

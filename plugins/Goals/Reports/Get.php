@@ -19,6 +19,8 @@ use Piwik\Plugins\CoreVisualizations\Visualizations\Sparklines;
 use Piwik\Plugins\Goals\API;
 use Piwik\Plugins\Goals\Goals;
 use Piwik\Report\ReportWidgetFactory;
+use Piwik\Widget\Widget;
+use Piwik\Widget\WidgetContainerConfig;
 use Piwik\Widget\WidgetsList;
 
 class Get extends Base
@@ -59,12 +61,12 @@ class Get extends Base
         $config->setOrder(++$orderId);
         $widgetsList->addWidget($config);
 
-        $config = $factory->createWidget();
-        $config->forceViewDataTable(ByDimension::ID);
+        $config = $factory->createContainerWidget('Goals');
         $config->setSubCategory('General_Overview');
         $config->setName('Goals_ConversionsOverviewBy');
         $config->setOrder(++$orderId);
-        $widgetsList->addWidget($config);
+        $widgetsList->addContainer($config);
+        $this->buildGoalByDimensionView('', $config);
 
         $config = $factory->createWidget();
         $config->forceViewDataTable(Evolution::ID);
@@ -87,14 +89,14 @@ class Get extends Base
         $config->setOrder(++$orderId);
         $widgetsList->addWidget($config);
 
-        $config = $factory->createWidget();
-        $config->forceViewDataTable(ByDimension::ID);
+        $config = $factory->createContainerWidget('GoalsOrder');
         $config->setCategory('Goals_Ecommerce');
         $config->setSubCategory('Ecommerce_Sales');
         $config->setName('Ecommerce_Sales');
         $config->setParameters(array('idGoal' => Piwik::LABEL_ID_GOAL_IS_ECOMMERCE_ORDER));
         $config->setOrder(++$orderId);
-        $widgetsList->addWidget($config);
+        $widgetsList->addContainer($config);
+        $this->buildGoalByDimensionView(Piwik::LABEL_ID_GOAL_IS_ECOMMERCE_ORDER, $config);
 
         $numGoals = count($goals);
         if ($numGoals > 0) {
@@ -102,8 +104,9 @@ class Get extends Base
             $showGoalsGrouped = $numGoals > 3;
 
             foreach ($goals as $goal) {
+                $idGoal = $goal['idgoal'];
                 $name   = Common::sanitizeInputValue($goal['name']);
-                $params = array('idGoal' => $goal['idgoal']);
+                $params = array('idGoal' => $idGoal);
 
                 $goalTranslated = Piwik::translate('Goals_GoalX', array($name));
 
@@ -134,13 +137,13 @@ class Get extends Base
                 $widgetsList->addWidget($config);
 
 
-                $config = $factory->createWidget();
+                $config = $factory->createContainerWidget('Goals' . $idGoal);
                 $config->setName(Piwik::translate('Goals_GoalConversionsBy', array($name)));
                 $config->setSubCategory($name);
-                $config->forceViewDataTable(ByDimension::ID);
-                $config->setParameters($params);
+                $config->setParameters(array());
                 $config->setOrder(++$orderId);
-                $widgetsList->addWidget($config);
+                $widgetsList->addContainer($config);
+                $this->buildGoalByDimensionView($idGoal, $config);
 
 
                 $config = $factory->createWidget();
@@ -157,6 +160,81 @@ class Get extends Base
 
     }
 
+    private function buildGoalByDimensionView($idGoal, WidgetContainerConfig $container)
+    {
+        $container->setLayout('ByDimension');
+        $ecommerce = $idGoal == Piwik::LABEL_ID_GOAL_IS_ECOMMERCE_ORDER;
+
+        $conversions = $this->getConversionForGoal();
+        if ($ecommerce) {
+            $cartNbConversions = $this->getConversionForGoal($idGoal);
+        } else {
+            $cartNbConversions = false;
+        }
+
+        $preloadAbandonedCart = $cartNbConversions !== false && $conversions == 0;
+
+        // add ecommerce reports
+        $ecommerceCustomParams = array();
+        if ($ecommerce) {
+            if ($preloadAbandonedCart) {
+                $ecommerceCustomParams['abandonedCarts'] = '1';
+            } else {
+                $ecommerceCustomParams['abandonedCarts'] = '0';
+            }
+        }
+
+        if (Common::getRequestVar('idGoal', '') === '') // if no idGoal, use 0 for overview
+        {
+            $customParams['idGoal'] = '0'; // NOTE: Must be string! Otherwise Piwik_View_HtmlTable_Goals fails.
+        }
+
+        if ($conversions > 0 || $ecommerce) {
+            // for non-Goals reports, we show the goals table
+            $customParams = $ecommerceCustomParams + array('documentationForGoalsPage' => '1');
+
+            if (Common::getRequestVar('idGoal', '') === '') // if no idGoal, use 0 for overview
+            {
+                $customParams['idGoal'] = '0'; // NOTE: Must be string! Otherwise Piwik_View_HtmlTable_Goals fails.
+            }
+
+            $allReports = Goals::getReportsWithGoalMetrics();
+            foreach ($allReports as $category => $reports) {
+                if ($ecommerce) {
+                    $categoryText = Piwik::translate('Ecommerce_ViewSalesBy', $category);
+                } else {
+                    $categoryText = Piwik::translate('Goals_ViewGoalsBy', $category);
+                }
+
+                foreach ($reports as $report) {
+                    if (empty($report['viewDataTable'])
+                        && empty($report['abandonedCarts'])
+                    ) {
+                        $report['viewDataTable'] = 'tableGoals';
+                    }
+
+                    $widget = $this->createWidgetForReport($report['module'], $report['action']);
+                    $widget->setParameters($customParams);
+                    $widget->setCategory($categoryText);
+                    $widget->setSubCategory($categoryText);
+                    $widget->setIsNotWidgetizable();
+
+                    if (!empty($report['viewDataTable'])) {
+                        $widget->setDefaultView($report['viewDataTable']);
+                    }
+
+                    $container->addWidget($widget);
+                }
+            }
+        }
+    }
+
+    private function createWidgetForReport($module, $action)
+    {
+        $factory = new ReportWidgetFactory(Report::factory($module, $action));
+        return $factory->createWidget();
+    }
+
     private function getConversionForGoal($idGoal = '')
     {
         $request = new Request("method=Goals.get&format=original&idGoal=$idGoal");
@@ -168,71 +246,7 @@ class Get extends Base
 
     public function configureView(ViewDataTable $view)
     {
-        if ($view->isViewDataTableId(ByDimension::ID)) {
-            $idGoal = Common::getRequestVar('idGoal', '', 'string');
-            $ecommerce = $idGoal == Piwik::LABEL_ID_GOAL_IS_ECOMMERCE_ORDER;
-
-            $conversions = $this->getConversionForGoal();
-            if ($ecommerce) {
-                $cartNbConversions = $this->getConversionForGoal($idGoal);
-            } else {
-                $cartNbConversions = false;
-            }
-
-            $preloadAbandonedCart = $cartNbConversions !== false && $conversions == 0;
-
-            // add ecommerce reports
-            $ecommerceCustomParams = array();
-            if ($ecommerce) {
-                if ($preloadAbandonedCart) {
-                    $ecommerceCustomParams['abandonedCarts'] = '1';
-                } else {
-                    $ecommerceCustomParams['abandonedCarts'] = '0';
-                }
-            }
-
-            if (Common::getRequestVar('idGoal', '') === '') // if no idGoal, use 0 for overview
-            {
-                $customParams['idGoal'] = '0'; // NOTE: Must be string! Otherwise Piwik_View_HtmlTable_Goals fails.
-            }
-
-            if ($conversions > 0 || $ecommerce) {
-                // for non-Goals reports, we show the goals table
-                $customParams = $ecommerceCustomParams + array('documentationForGoalsPage' => '1');
-
-                if (Common::getRequestVar('idGoal', '') === '') // if no idGoal, use 0 for overview
-                {
-                    $customParams['idGoal'] = '0'; // NOTE: Must be string! Otherwise Piwik_View_HtmlTable_Goals fails.
-                }
-
-                $allReports = Goals::getReportsWithGoalMetrics();
-                foreach ($allReports as $category => $reports) {
-                    if ($ecommerce) {
-                        $categoryText = Piwik::translate('Ecommerce_ViewSalesBy', $category);
-                    } else {
-                        $categoryText = Piwik::translate('Goals_ViewGoalsBy', $category);
-                    }
-
-                    foreach ($reports as $report) {
-                        if (empty($report['viewDataTable'])
-                            && empty($report['abandonedCarts'])
-                        ) {
-                            $report['viewDataTable'] = 'tableGoals';
-                        }
-
-                        $instance = Report::factory($report['module'], $report['action']);
-                        $widget = $view->config->addReport($instance);
-                        $widget->setParameters($customParams);
-                        $widget->setCategory($categoryText);
-
-                        if (!empty($report['viewDataTable'])) {
-                            $widget->setDefaultView($report['viewDataTable']);
-                        }
-                    }
-                }
-            }
-
-        } elseif ($view->isViewDataTableId(Sparklines::ID)) {
+        if ($view->isViewDataTableId(Sparklines::ID)) {
             $idGoal = Common::getRequestVar('idGoal', 0, 'int');
 
             if (empty($idGoal)) {

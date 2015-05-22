@@ -33,6 +33,11 @@ class SubCategory
         return $this->category;
     }
 
+    public function setCategory($category)
+    {
+        $this->category = $category;
+    }
+
     public function setName($name)
     {
         $this->name = $name;
