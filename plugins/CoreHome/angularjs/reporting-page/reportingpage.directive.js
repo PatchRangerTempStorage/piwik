@@ -137,7 +137,8 @@
 
                                 function shouldBeRenderedWithFullWidth(widget)
                                 {
-                                    if (widget.isContainer && widget.layout && widget.layout === 'ByDimension') {
+                                    if ((widget.isContainer && widget.layout && widget.layout === 'ByDimension')
+                                        || widget.viewDataTable === 'bydimension') {
                                         return true;
                                     }
 

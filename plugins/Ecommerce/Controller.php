@@ -42,6 +42,16 @@ class Controller extends \Piwik\Plugins\Goals\Controller
         return $view->render();
     }
 
+    public function getSparklines()
+    {
+        $view = $this->getGoalReportView($idGoal = Piwik::LABEL_ID_GOAL_IS_ECOMMERCE_ORDER);
+        $view->displayFullReport = false;
+        $view->conversionsOverViewEnabled = false;
+        $view->headline = false;
+
+        return $view->render();
+    }
+
     public function ecommerceLogReport($fetch = false)
     {
         $view = new View('@Ecommerce/ecommerceLog');

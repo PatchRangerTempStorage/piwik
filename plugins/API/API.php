@@ -543,6 +543,11 @@ class API extends \Piwik\Plugin\API
                 continue;
             }
 
+            if ($widgetConfig instanceof WidgetContainerConfig && !$widgetConfig->getWidgetConfigs()) {
+                // if a container does not contain any widgets, ignore it
+                continue;
+            }
+
             if (!isset($all[$category])) {
                 $all[$category] = new Category();
                 $all[$category]->setName($category);

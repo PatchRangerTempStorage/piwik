@@ -99,6 +99,7 @@ class Controller extends \Piwik\Plugin\Controller
     {
         $view = new View('@Goals/getGoalReportView');
         $view->onlyConversionOverview = false;
+        $view->conversionsOverViewEnabled = true;
         if ($idGoal == Piwik::LABEL_ID_GOAL_IS_ECOMMERCE_ORDER) {
             $goalDefinition['name'] = $this->translator->translate('Goals_Ecommerce');
             $goalDefinition['allow_multiple'] = true;

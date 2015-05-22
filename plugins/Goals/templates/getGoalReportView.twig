@@ -4,6 +4,7 @@
 {% include "@Goals/_titleAndEvolutionGraph.twig" | raw %}
 {% endif %}
 
+{% if conversionsOverViewEnabled %}
 <div class="clear"></div>
 {% if nb_conversions > 0 %}
     {% if not onlyConversionOverview %}
@@ -42,6 +43,7 @@
             </li>
         {% endif %}
     </ul>
+{% endif %}
 {% endif %}
 
 <script type="text/javascript">
