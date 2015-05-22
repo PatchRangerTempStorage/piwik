@@ -41,15 +41,16 @@
                     }
 
                     scope.$on("$includeContentError", function(event, args){
-                        scope.loadFailed=true;
-                        scope.loading=false;
+                        scope.loadFailed = true;
+                        scope.loading = false;
                     });
                     scope.$on("$includeContentLoaded", function(event, args){
-                        scope.loadFailed=false;
-                        scope.loading=false;
+                        scope.loadFailed = false;
+                        scope.loading = false;
                     });
                     scope.$on("$includeContentRequested", function(event, args){
-                        scope.loading=true;
+                        scope.loadFailed = false;
+                        scope.loading = true;
                     });
 
                     if (!scope.widget.isContainer) {

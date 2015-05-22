@@ -73,6 +73,20 @@
                         return found;
                     }
 
+
+                    scope.$on("$includeContentError", function(event, args){
+                        scope.loadFailed = true;
+                        scope.loading = false;
+                    });
+                    scope.$on("$includeContentLoaded", function(event, args){
+                        scope.loadFailed = false;
+                        scope.loading = false;
+                    });
+                    scope.$on("$includeContentRequested", function(event, args){
+                        scope.loadFailed = false;
+                        scope.loading = true;
+                    });
+
                     scope.renderPage = function (init) {
                         resetPage(scope);
 
@@ -93,10 +107,13 @@
 
                         // todo also check for module & action
                         if (!category || !subcategory) {
+
                             // load old fashioned way
                             scope.pageContentUrl = '?' + $location.path().substr(1);
                             return;
                         }
+
+                        scope.loading = true;
 
                         // todo we actually have this data already from reporting menu, we should use angular routes
                         // here for even faster performance
@@ -109,7 +126,7 @@
 
                             // here we make sure both API requests are done, we should do this later in routers!
                             reportMetadataPromise.then(function () {
-
+                                scope.loading = false;
 
 
                                 var widgets = [];

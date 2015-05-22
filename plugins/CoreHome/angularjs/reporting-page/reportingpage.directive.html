@@ -1,4 +1,9 @@
 <div>
+
+    <div ng-show="loading" class="loadingPiwik">
+        <img src="plugins/Morpheus/images/loading-blue.gif" alt=""/>{{ 'General_LoadingData'|translate }}
+    </div>
+
     <div ng-if="pageContentUrl" ng-include="pageContentUrl"></div>
 
     <div ng-repeat="evolutionReport in evolutionReports" piwik-widget widget="evolutionReport"></div>

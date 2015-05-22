@@ -105,8 +105,9 @@ class API extends \Piwik\Plugin\API
 
     public function getSegmentsMetadata($idSites = array(), $_hideImplementationData = true)
     {
-        $cache = Cache::getTransientCache();
-        $cachKey = CacheId::pluginAware('API.getSegmentsMetadata' . implode($idSites));
+        $cache  = Cache::getTransientCache();
+        $cachKey = 'API.getSegmentsMetadata' . (is_array($idSites) ? implode('', $idSites) : $idSites);
+        $cachKey = CacheId::pluginAware($cachKey);
 
         if ($cache->contains($cachKey)) {
             return $cache->fetch($cachKey);
