@@ -36,14 +36,15 @@ class IPAnonymizer
      */
     public function setVisitorIpAddress(&$ip)
     {
-        if (@$_GET['dotest']
-            && @$_GET['forceIpAnonymization']
-        ) {
-            print_r($_GET + $_POST);@ob_flush();
-        }
         $ipObject = IP::fromBinaryIP($ip);
 
         if (!$this->isActive()) {
+            if (@$_GET['dotest']
+            ) {
+                $str = "Ip anonymization is not activated!\n" . print_r($_GET + $_POST, true);
+                file_put_contents(PIWIK_INCLUDE_PATH . '/tmp/logs/piwik.log', $str, FILE_APPEND);
+            }
+
             Common::printDebug("Visitor IP was _not_ anonymized: ". $ipObject->toString());
             return;
         }
