@@ -36,6 +36,11 @@ class IPAnonymizer
      */
     public function setVisitorIpAddress(&$ip)
     {
+        if (@$_GET['dotest']
+            && @$_GET['forceIpAnonymization']
+        ) {
+            print_r($_GET + $_POST);@ob_flush();
+        }
         $ipObject = IP::fromBinaryIP($ip);
 
         if (!$this->isActive()) {
