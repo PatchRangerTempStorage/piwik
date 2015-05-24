@@ -43,6 +43,8 @@ class WidgetsList
      */
     private $containerWidgets;
 
+    private static $instance;
+
     public function addWidget(WidgetConfig $widget)
     {
         $this->checkIsValidWidget($widget);
@@ -138,6 +140,10 @@ class WidgetsList
 
     public static function get()
     {
+        if (isset(self::$instance)) {
+            return self::$instance;
+        }
+
         $list = new static;
 
         $widgets = Widget::getAllWidgetConfigurations();
@@ -167,7 +173,8 @@ class WidgetsList
 
         Piwik::postEvent('Widgets.filterWidgets', array($list));
 
-        return $list;
+        self::$instance = $list;
+        return self::$instance;
     }
 
     /**

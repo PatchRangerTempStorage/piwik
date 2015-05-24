@@ -3,6 +3,9 @@
     <div ng-show="loading" class="loadingPiwik">
         <img src="plugins/Morpheus/images/loading-blue.gif" alt=""/>{{ 'General_LoadingData'|translate }}
     </div>
+    <div ng-show="loadingFailed">
+        Failed to load content
+    </div>
 
     <div ng-if="pageContentUrl" ng-include="pageContentUrl"></div>
 

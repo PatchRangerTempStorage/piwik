@@ -9,6 +9,7 @@ namespace Piwik\Plugins\Dashboard;
 
 use Piwik\Common;
 use Piwik\Piwik;
+use Piwik\Widget\Widget;
 use Piwik\Widget\WidgetsList;
 
 /**
@@ -33,10 +34,12 @@ class API extends \Piwik\Plugin\API
      */
     public function getDashboards()
     {
-        $dashboards = $this->getUserDashboards();
+        $widgetsList = WidgetsList::get();
+
+        $dashboards = $this->getUserDashboards($widgetsList);
 
         if (empty($dashboards)) {
-            $dashboards = array($this->getDefaultDashboard());
+            $dashboards = array($this->getDefaultDashboard($widgetsList));
         }
 
         return $dashboards;
@@ -47,14 +50,14 @@ class API extends \Piwik\Plugin\API
      *
      * @return array[]
      */
-    private function getDefaultDashboard()
+    private function getDefaultDashboard(WidgetsList $widgetsList)
     {
         $defaultLayout = $this->dashboard->getDefaultLayout();
         $defaultLayout = $this->dashboard->decodeLayout($defaultLayout);
 
         $defaultDashboard = array('name' => Piwik::translate('Dashboard_Dashboard'), 'layout' => $defaultLayout);
 
-        $widgets = $this->getExistingWidgetsWithinDashboard($defaultDashboard);
+        $widgets = $this->getExistingWidgetsWithinDashboard($defaultDashboard, $widgetsList);
 
         return $this->buildDashboard($defaultDashboard, $widgets);
     }
@@ -64,7 +67,7 @@ class API extends \Piwik\Plugin\API
      *
      * @return array[]
      */
-    private function getUserDashboards()
+    private function getUserDashboards(WidgetsList $widgetsList)
     {
         $userLogin = Piwik::getCurrentUserLogin();
         $userDashboards = $this->dashboard->getAllDashboards($userLogin);
@@ -74,7 +77,7 @@ class API extends \Piwik\Plugin\API
         foreach ($userDashboards as $userDashboard) {
 
             if ($this->hasDashboardColumns($userDashboard)) {
-                $widgets = $this->getExistingWidgetsWithinDashboard($userDashboard);
+                $widgets = $this->getExistingWidgetsWithinDashboard($userDashboard, $widgetsList);
                 $dashboards[] = $this->buildDashboard($userDashboard, $widgets);
             }
         }
@@ -82,7 +85,7 @@ class API extends \Piwik\Plugin\API
         return $dashboards;
     }
 
-    private function getExistingWidgetsWithinDashboard($dashboard)
+    private function getExistingWidgetsWithinDashboard($dashboard, WidgetsList $widgetsList)
     {
         $columns = $this->getColumnsFromDashboard($dashboard);
 
@@ -92,7 +95,7 @@ class API extends \Piwik\Plugin\API
         foreach ($columns as $column) {
             foreach ($column as $widget) {
 
-                if ($this->widgetIsNotHidden($widget) && $this->widgetExists($widget)) {
+                if ($this->widgetIsNotHidden($widget) && $this->widgetExists($widget, $widgetsList)) {
                     $module = $widget->parameters->module;
                     $action = $widget->parameters->action;
 
@@ -129,7 +132,7 @@ class API extends \Piwik\Plugin\API
         return array('name' => $dashboard['name'], 'id' => $dashboard['iddashboard'], 'widgets' => $widgets);
     }
 
-    private function widgetExists($widget)
+    private function widgetExists($widget, WidgetsList $widgetsList)
     {
         if (empty($widget->parameters->module)) {
             return false;
@@ -138,7 +141,7 @@ class API extends \Piwik\Plugin\API
         $module = $widget->parameters->module;
         $action = $widget->parameters->action;
 
-        return WidgetsList::get()->isDefined($module, $action);
+        return $widgetsList->isDefined($module, $action);
     }
 
     private function widgetIsNotHidden($widget)

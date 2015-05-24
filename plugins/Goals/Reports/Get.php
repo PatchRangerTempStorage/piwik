@@ -41,6 +41,7 @@ class Get extends Base
     public function configureWidgets(WidgetsList $widgetsList, ReportWidgetFactory $factory)
     {
         $orderId = 1;
+        $allReports = Goals::getReportsWithGoalMetrics();
 
         $idSite = Common::getRequestVar('idSite', null, 'int');
         $goals  = API::getInstance()->getGoals($idSite);
@@ -66,7 +67,7 @@ class Get extends Base
         $config->setName('Goals_ConversionsOverviewBy');
         $config->setOrder(++$orderId);
         $widgetsList->addContainer($config);
-        $this->buildGoalByDimensionView('', $config);
+        $this->buildGoalByDimensionView('', $config, $allReports);
 
         $config = $factory->createWidget();
         $config->forceViewDataTable(Evolution::ID);
@@ -96,7 +97,7 @@ class Get extends Base
         $config->setParameters(array('idGoal' => Piwik::LABEL_ID_GOAL_IS_ECOMMERCE_ORDER));
         $config->setOrder(++$orderId);
         $widgetsList->addContainer($config);
-        $this->buildGoalByDimensionView(Piwik::LABEL_ID_GOAL_IS_ECOMMERCE_ORDER, $config);
+        $this->buildGoalByDimensionView(Piwik::LABEL_ID_GOAL_IS_ECOMMERCE_ORDER, $config, $allReports);
 
         $numGoals = count($goals);
         if ($numGoals > 0) {
@@ -143,7 +144,7 @@ class Get extends Base
                 $config->setParameters(array());
                 $config->setOrder(++$orderId);
                 $widgetsList->addContainer($config);
-                $this->buildGoalByDimensionView($idGoal, $config);
+                $this->buildGoalByDimensionView($idGoal, $config, $allReports);
 
 
                 $config = $factory->createWidget();
@@ -160,7 +161,7 @@ class Get extends Base
 
     }
 
-    private function buildGoalByDimensionView($idGoal, WidgetContainerConfig $container)
+    private function buildGoalByDimensionView($idGoal, WidgetContainerConfig $container, $allReports)
     {
         $container->setLayout('ByDimension');
         $ecommerce = $idGoal == Piwik::LABEL_ID_GOAL_IS_ECOMMERCE_ORDER;
@@ -198,7 +199,6 @@ class Get extends Base
                 $customParams['idGoal'] = '0'; // NOTE: Must be string! Otherwise Piwik_View_HtmlTable_Goals fails.
             }
 
-            $allReports = Goals::getReportsWithGoalMetrics();
             foreach ($allReports as $category => $reports) {
                 if ($ecommerce) {
                     $categoryText = Piwik::translate('Ecommerce_ViewSalesBy', $category);

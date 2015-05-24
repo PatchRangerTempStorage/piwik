@@ -73,17 +73,16 @@
                         return found;
                     }
 
-
-                    scope.$on("$includeContentError", function(event, args){
-                        scope.loadFailed = true;
+                    scope.$on("$includeContentError", function(event, args) {
+                        scope.loadingFailed = true;
                         scope.loading = false;
                     });
-                    scope.$on("$includeContentLoaded", function(event, args){
-                        scope.loadFailed = false;
+                    scope.$on("$includeContentLoaded", function(event, args) {
+                        scope.loadingFailed = false;
                         scope.loading = false;
                     });
-                    scope.$on("$includeContentRequested", function(event, args){
-                        scope.loadFailed = false;
+                    scope.$on("$includeContentRequested", function(event, args) {
+                        scope.loadingFailed = false;
                         scope.loading = true;
                     });
 
