@@ -594,13 +594,7 @@ class API extends \Piwik\Plugin\API
                         'module' => $widget->getModule(),
                         'action' => $widget->getAction(),
                         'parameters' => $this->buildWidgetParameters($widget),
-                        'widget_url' => '?' . http_build_query($this->buildWidgetParameters($widget)),
-                        'processed_url' => '?' . http_build_query(array(
-                                'module' => 'API',
-                                'method' => 'API.getProcessedReport',
-                                'apiModule' => $widget->getModule(),
-                                'apiAction' => $widget->getAction()
-                            ))
+                        'widget_url' => '?' . http_build_query($this->buildWidgetParameters($widget))
                     );
 
                     if ($widget instanceof ReportWidgetConfig) {
@@ -625,13 +619,7 @@ class API extends \Piwik\Plugin\API
                                 'parameters' => $this->buildWidgetParameters($widgetConfig),
                                 'viewDataTable' => $widgetConfig->getDefaultView(),
                                 'order' => $widgetConfig->getOrder(),
-                                'widget_url' => '?' . http_build_query($this->buildWidgetParameters($widgetConfig)),
-                                'processed_url' => '?' . http_build_query(array(
-                                        'module' => 'API',
-                                        'method' => 'API.getProcessedReport',
-                                        'apiModule' => $widgetConfig->getModule(),
-                                        'apiAction' => $widgetConfig->getAction()
-                                    ))
+                                'widget_url' => '?' . http_build_query($this->buildWidgetParameters($widgetConfig))
                             );
                             $children[] = $child;
                         }

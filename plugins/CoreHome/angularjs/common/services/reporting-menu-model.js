@@ -42,6 +42,8 @@
 
                 category.subcategories = [];
 
+                var goalsGroup = false;
+
                 angular.forEach(pages, function (page, key) {
                     if (page.category.id === categoryId) {
                         var subcategory = page.subcategory;
@@ -52,9 +54,39 @@
 
                         // also this rather controller logic, not model logic
                         subcategory.html_url = 'module=CoreHome&action=index&category=' + categoryId + '&subcategory='+ subcategory.id;
+
+                        if (page.widgets && page.widgets[0] && page.widgets[0].parameters.idGoal && page.category.id === 'Goals_Goals') {
+                            // we handle a goal
+                            if (!goalsGroup) {
+                                goalsGroup = angular.copy(subcategory);
+                                goalsGroup.name = $filter('translate')('Goals_ChooseGoal');
+                                goalsGroup.isGroup = true;
+                                goalsGroup.subcategories = [];
+                                goalsGroup.order = 10;
+                            }
+
+                            if (subcategory.active) {
+                                goalsGroup.name = subcategory.name;
+                            }
+
+                            var goalId = page.widgets[0].parameters.idGoal;
+                            subcategory.tooltip = subcategory.name + ' (id = ' + goalId + ' )';
+
+                            goalsGroup.subcategories.push(subcategory);
+                            return;
+                        }
+
                         category.subcategories.push(subcategory);
                     }
                 });
+
+                if (goalsGroup && goalsGroup.subcategories && goalsGroup.subcategories.length <= 3) {
+                    angular.forEach(goalsGroup.subcategories, function (subcategory) {
+                        category.subcategories.push(subcategory);
+                    });
+                } else {
+                    category.subcategories.push(goalsGroup);
+                }
 
                 category.subcategories = $filter('orderBy')(category.subcategories, 'order');
 

@@ -10,7 +10,18 @@
             <ul>
                 <li ng-repeat="subcategory in category.subcategories"
                     ng-class="{'sfHover': subcategory.active}">
-                    <a class="menuItem" ng-click='loadSubcategory(category, subcategory)'>
+
+                    <div ng-if="subcategory.isGroup" piwik-menudropdown show-search="true" menu-title="{{ subcategory.name }}">
+                        <a class="item"
+                           ng-repeat="subcat in subcategory.subcategories"
+                           title="{{ subcat.tooltip }}"
+                           ng-class="{'active': subcat.active}"
+                           ng-click='loadSubcategory(category, subcat)'>
+                            {{ subcat.name }}
+                        </a>
+                    </div>
+
+                    <a ng-if="!subcategory.isGroup" class="menuItem" ng-click='loadSubcategory(category, subcategory)'>
                         {{ subcategory.name }}
                     </a>
                 </li>

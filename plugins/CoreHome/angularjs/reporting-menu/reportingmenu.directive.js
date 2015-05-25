@@ -99,8 +99,9 @@
                     };
 
                     var url = $location.path();
-                    var activeCategory = piwik.broadcast.getParamValue('category', url);
-                    var activeSubCategory = piwik.broadcast.getParamValue('subcategory', url);
+                    url = encodeURI(url);
+                    var activeCategory = decodeURIComponent(piwik.broadcast.getParamValue('category', url));
+                    var activeSubCategory = decodeURIComponent(piwik.broadcast.getParamValue('subcategory', url));
 
                     menuModel.fetchMenuItems(activeCategory, activeSubCategory).then(function (menu) {
                         scope.menu = menu;
