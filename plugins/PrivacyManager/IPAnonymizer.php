@@ -10,6 +10,7 @@ namespace Piwik\Plugins\PrivacyManager;
 
 use Piwik\Common;
 use Piwik\Network\IP;
+use Piwik\Tracker\Cache;
 
 /**
  * Anonymize visitor IP addresses to comply with the privacy laws/guidelines in countries, such as Germany.
@@ -42,6 +43,7 @@ class IPAnonymizer
             if (@$_GET['dotest']
             ) {
                 $str = "Ip anonymization is not activated!\n" . print_r($_GET + $_POST, true);
+                $str .= print_r(Cache::getCacheGeneral(), true)."\n";
                 file_put_contents(PIWIK_INCLUDE_PATH . '/tmp/logs/piwik.log', $str, FILE_APPEND);
             }
 
