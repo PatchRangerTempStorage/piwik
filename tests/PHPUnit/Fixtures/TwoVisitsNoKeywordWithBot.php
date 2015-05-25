@@ -47,6 +47,7 @@ class TwoVisitsNoKeywordWithBot extends Fixture
         $t = self::getTracker($idSite, $dateTime, $defaultInit = true);
 
         IPAnonymizer::activate();
+        echo shell_exec("ls " . PIWIK_INCLUDE_PATH . '/tmp/cache/tracker');
 
         // Also testing to record this as a bot while specifically allowing bots
         $t->setUserAgent('Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)');
