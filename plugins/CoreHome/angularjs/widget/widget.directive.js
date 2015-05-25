@@ -40,15 +40,15 @@
                         return '?' + currentHashStr.substr(1);
                     }
 
-                    scope.$on("$includeContentError", function(event, args) {
+                    scope.$on("$includeContentError", function(event) {
                         scope.loadingFailed = true;
                         scope.loading = false;
                     });
-                    scope.$on("$includeContentLoaded", function(event, args) {
+                    scope.$on("$includeContentLoaded", function(event) {
                         scope.loadingFailed = false;
                         scope.loading = false;
                     });
-                    scope.$on("$includeContentRequested", function(event, args) {
+                    scope.$on("$includeContentRequested", function(event) {
                         scope.loadingFailed = false;
                         scope.loading = true;
                     });

@@ -7,13 +7,13 @@
         Failed to load content
     </div>
 
-    <div ng-if="pageContentUrl" ng-include="pageContentUrl"></div>
+    <div ng-if="pageContentUrl" onload="pageLoaded()" ng-include="pageContentUrl"></div>
 
-    <div ng-repeat="evolutionReport in evolutionReports" piwik-widget widget="evolutionReport"></div>
+    <div ng-repeat="evolutionReport in pageModel.evolutionReports" piwik-widget widget="evolutionReport"></div>
 
-    <div ng-repeat="sparklineReport in sparklineReports" piwik-widget widget="sparklineReport"></div>
+    <div ng-repeat="sparklineReport in pageModel.sparklineReports" piwik-widget widget="sparklineReport"></div>
 
-    <div ng-repeat="widget in widgets">
+    <div ng-repeat="widget in pageModel.widgets">
         <div ng-if="!widget.group" piwik-widget widget="widget"></div>
 
         <div ng-if="widget.group" class="row">

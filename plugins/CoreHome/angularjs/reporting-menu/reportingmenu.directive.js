@@ -13,9 +13,9 @@
 (function () {
     angular.module('piwikApp').directive('piwikReportingMenu', piwikReportingMenu);
 
-    piwikReportingMenu.$inject = ['$document', 'piwik', '$filter', 'piwikApi', '$location', '$timeout'];
+    piwikReportingMenu.$inject = ['$document', 'piwik', '$location', '$timeout', 'reportingMenuModel'];
 
-    function piwikReportingMenu($document, piwik, $filter, piwikApi, $location, $timeout){
+    function piwikReportingMenu($document, piwik, $location, $timeout, menuModel){
 
         return {
             restrict: 'A',
@@ -25,6 +25,8 @@
             compile: function (element, attrs) {
 
                 return function (scope, element, attrs, ngModel) {
+                    scope.menuModel = menuModel;
+
                     scope.menu = {};
 
                     var timeoutPromise = null;
@@ -100,77 +102,13 @@
                     var activeCategory = piwik.broadcast.getParamValue('category', url);
                     var activeSubCategory = piwik.broadcast.getParamValue('subcategory', url);
 
-                    piwikApi.bulkFetch([
-                        {method: 'API.getPagesMetadata'},
-                        {method: 'Dashboard.getDashboards'}
-                    ]).then(function (response) {
-                        var menu = [];
-
-                        var categoriesHandled = {};
-                        angular.forEach(response[0], function (page, key) {
-                            var category   = page.category;
-                            var categoryId = category.id;
-
-                            if (categoriesHandled[categoryId]) {
-                                return;
-                            }
-
-                            categoriesHandled[categoryId] = true;
-
-                            if (activeCategory && category.id === activeCategory) {
-                                category.active = true;
-                                category.hover  = true;
-                            }
-
-                            category.subcategories = [];
-
-                            angular.forEach(response[0], function (page, key) {
-                                if (page.category.id === categoryId) {
-                                    var subcategory = page.subcategory;
-
-                                    if (subcategory.id === activeSubCategory) {
-                                        subcategory.active = true;
-                                    }
-
-                                    subcategory.html_url = 'module=CoreHome&action=index&category=' + categoryId + '&subcategory='+ subcategory.id;
-                                    category.subcategories.push(subcategory);
-                                }
-                            });
-
-                            category.subcategories = $filter('orderBy')(category.subcategories, 'order');
-
-                            menu.push(category);
-                        });
-
-                        var dashboards = {
-                            name: 'Dashboards',  // TODO use translation
-                            order: 1,
-                            subcategories: []
-                        }
-
-                        angular.forEach(response[1], function (dashboard, key) {
-                            var subcategory = dashboard.name;
-
-                            if (!activeCategory) {
-                                dashboards.active = true;
-                                dashboards.hover  = true;
-                            }
-
-                            dashboard.order = key;
-                            dashboard.html_url = 'module=Dashboard&action=embeddedIndex&idDashboard=' + dashboard.id;
-
-                            dashboards.subcategories.push(dashboard);
-                        });
-                        menu.push(dashboards);
-
-                        scope.menu = $filter('orderBy')(menu, 'order');
+                    menuModel.fetchMenuItems(activeCategory, activeSubCategory).then(function (menu) {
+                        scope.menu = menu;
 
                         if (!piwik.broadcast.isHashExists()) {
-                            scope.loadSubcategory(scope.menu[0], scope.menu[0].subcategories[0]);
+                            scope.loadSubcategory(menu[0], menu[0].subcategories[0]);
                         }
                     });
-
-
                 };
             }
         };

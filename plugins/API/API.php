@@ -480,33 +480,6 @@ class API extends \Piwik\Plugin\API
         );
     }
 
-    // public function getCategoryMetadata($idSite)
-    public function getPageMetadata($idSite, $categoryId, $subcategoryId)
-    {
-        Piwik::checkUserHasViewAccess($idSite);
-
-        $categoryId    = urldecode($categoryId);
-        $subcategoryId = urldecode($subcategoryId);
-
-        $widgetsList = WidgetsList::get($idSite);
-
-        $filtered = array();
-        foreach ($widgetsList->getWidgets() as $widget) {
-            if ($widget->getCategory() === $categoryId && $widget->getSubCategory() === $subcategoryId) {
-                $filtered[] = $widget;
-            }
-        }
-
-        $categories  = $this->moveWidgetsIntoCategories($filtered);
-        $categories  = $this->buildPagesMetadata($categories);
-
-        if (!empty($categories)) {
-            return array_shift($categories);
-        }
-
-        return new \stdClass();
-    }
-
     public function getPagesMetadata($idSite)
     {
         Piwik::checkUserHasViewAccess($idSite);
