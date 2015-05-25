@@ -100,6 +100,7 @@ before_script:
 
   # add always_populate_raw_post_data=-1 to php.ini
   - echo "always_populate_raw_post_data=-1" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
+  - cat ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
 
   - ./tests/travis/configure_git.sh
 
@@ -137,7 +138,7 @@ before_script:
   - ./tests/travis/setup_webserver.sh
 
   - export GENERATE_TRAVIS_YML_COMMAND="php ./console generate:travis-yml --core --verbose"
-  - ./tests/travis/autoupdate_travis_yml.sh
+  #- ./tests/travis/autoupdate_travis_yml.sh
 
   - cd tests/PHPUnit
 
