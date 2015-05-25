@@ -28,6 +28,8 @@ use Piwik\UpdateCheck;
 use Piwik\Url;
 use Piwik\View;
 use Piwik\ViewDataTable\Manager as ViewDataTableManager;
+use Piwik\Widget\WidgetContainerConfig;
+use Piwik\Widget\WidgetsList;
 
 class Controller extends \Piwik\Plugin\Controller
 {
@@ -56,6 +58,53 @@ class Controller extends \Piwik\Plugin\Controller
         $report->checkIsEnabled();
 
         return $report->render();
+    }
+
+    public function renderReportWidgetContainer()
+    {
+        Piwik::checkUserHasSomeViewAccess();
+        $this->checkSitePermission();
+
+        $containerId = Common::getRequestVar('widgetContainerId', null, 'string');
+
+        $view = new View('@CoreHome/widgetContainer');
+
+        $widgets = array();
+
+        $widgetsList = WidgetsList::get();
+        foreach ($widgetsList->getWidgets() as $container) {
+            if ($container instanceof WidgetContainerConfig && $container->getId() === $containerId) {
+
+                $container->checkIsEnabled();
+
+                foreach ($container->getWidgetConfigs() as $config) {
+                    $defaultParams = array(
+                        'module' => $config->getModule(),
+                        'action' => $config->getAction(),
+                        'idSite' => Common::getRequestVar('idSite', null, 'int'),
+                        'period' => Common::getRequestVar('period', null, 'string'),
+                        'date' => Common::getRequestVar('date', null, 'string'),
+                    );
+                    $params = $defaultParams + $config->getParameters();
+                    $oldGet = $_GET;
+                    $oldPost = $_POST;
+
+                    $_GET = $params;
+
+                    $content = FrontController::getInstance()->dispatch($config->getModule(), $config->getAction());
+                    $widgets[] = array('content' => $content, 'name' => $config->getName());
+
+                    $_GET = $oldGet;
+                    $_POST = $oldPost;
+                }
+
+                break;
+            }
+        }
+
+        $view->widgets = $widgets;
+
+        return $view->render();
     }
 
     /**

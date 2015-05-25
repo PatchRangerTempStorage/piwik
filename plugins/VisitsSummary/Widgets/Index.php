@@ -8,13 +8,39 @@
  */
 namespace Piwik\Plugins\VisitsSummary\Widgets;
 
-use Piwik\Widget\WidgetConfig;
+use Piwik\Plugin\Report;
+use Piwik\Plugins\CoreVisualizations\Visualizations\JqplotGraph\Evolution;
+use Piwik\Plugins\CoreVisualizations\Visualizations\Sparklines;
+use Piwik\Report\ReportWidgetFactory;
+use Piwik\Widget\WidgetsList;
 
-class Index extends \Piwik\Widget\Widget
+class Index extends \Piwik\Widget\WidgetContainerConfig
 {
-    public static function configure(WidgetConfig $config)
+    protected $category = 'General_Visitors';
+    protected $name = 'VisitsSummary_WidgetOverviewGraph';
+    protected $id = 'VisitOverviewWithGraph';
+    protected $isWidgetizable = true;
+
+    public function isEnabled()
     {
-        $config->setCategory('VisitsSummary_VisitsSummary');
-        $config->setName('VisitsSummary_WidgetOverviewGraph');
+        return Report::factory('VisitsSummary', 'get')->isEnabled();
+    }
+
+    public function getWidgetConfigs()
+    {
+        $report  = Report::factory('VisitsSummary', 'get');
+
+        $factory = new ReportWidgetFactory($report);
+        $widgets = array();
+
+        $list = new WidgetsList();
+        $report->configureWidgets($list, $factory);
+
+        foreach ($list->getWidgets() as $config) {
+            $config->setIsNotWidgetizable();
+            $widgets[] = $config;
+        }
+
+        return $widgets;
     }
 }

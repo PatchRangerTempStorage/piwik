@@ -7,6 +7,9 @@
  *
  */
 namespace Piwik\Widget;
+use Piwik\Common;
+use Piwik\Container\StaticContainer;
+use Piwik\Plugin\Manager as PluginManager;
 
 /**
  * Defines a new widget. You can create a new widget using the console command `./console generate:widget`.
@@ -24,6 +27,10 @@ class WidgetContainerConfig extends WidgetConfig
     protected $widgets;
     protected $layout = '';
     protected $id;
+
+    protected $module = 'CoreHome';
+    protected $action = 'renderReportWidgetContainer';
+    protected $isWidgetizable = false;
 
     public function getId()
     {
@@ -61,9 +68,34 @@ class WidgetContainerConfig extends WidgetConfig
         return $this->widgets;
     }
 
-    public function isWidgetizeable()
+    public function getParameters()
     {
-        return false;
+        $params = parent::getParameters();
+        $params['widgetContainerId'] = $this->getId();
+        return $params;
+    }
+
+    /**
+     * @return WidgetContainerConfig[]
+     */
+    public static function getAllContainerConfigs()
+    {
+        $configs = array();
+
+        $widgetContainerConfigs = self::getAllWidgetContainerConfigClassNames();
+        foreach ($widgetContainerConfigs as $widgetClass) {
+            $configs[] = StaticContainer::get($widgetClass);
+        }
+
+        return $configs;
+    }
+
+    /**
+     * @return string[]
+     */
+    private static function getAllWidgetContainerConfigClassNames()
+    {
+        return PluginManager::getInstance()->findMultipleComponents('Widgets', 'Piwik\\Widget\\WidgetContainerConfig');
     }
 
 }

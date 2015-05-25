@@ -13,6 +13,7 @@ use Piwik\API\Request;
 use Piwik\Cache;
 use Piwik\CacheId;
 use Piwik\Columns\Dimension;
+use Piwik\Common;
 use Piwik\Config;
 use Piwik\Container\StaticContainer;
 use Piwik\DataTable;
@@ -458,7 +459,7 @@ class API extends \Piwik\Plugin\API
     {
         // todo this should be actually done in WidgetConfig
         return array('module' => $widget->getModule(),
-            'action' => $widget->getAction()
+            'action' => $widget->getAction(),
         ) + $widget->getParameters();
     }
 

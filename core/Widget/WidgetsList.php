@@ -9,11 +9,9 @@
 namespace Piwik\Widget;
 
 use Piwik\Cache as PiwikCache;
-use Piwik\Container\StaticContainer;
 use Piwik\Development;
 use Piwik\Piwik;
 use Piwik\Plugin\Report;
-use Piwik\Plugin\Manager as PluginManager;
 use Piwik\Report\ReportWidgetFactory;
 
 /**
@@ -148,12 +146,10 @@ class WidgetsList
 
         $widgets = Widget::getAllWidgetConfigurations();
 
-        $widgetContainerConfigs = self::getAllWidgetContainerConfigClassNames();
-        foreach ($widgetContainerConfigs as $widgetClass) {
-            /** @var WidgetContainerConfig $widget */
-            $widget = StaticContainer::get($widgetClass);
-            if ($widget->isEnabled()) {
-                $list->addContainer($widget);
+        $widgetContainerConfigs = WidgetContainerConfig::getAllContainerConfigs();
+        foreach ($widgetContainerConfigs as $config) {
+            if ($config->isEnabled()) {
+                $list->addContainer($config);
             }
         }
 
@@ -199,14 +195,6 @@ class WidgetsList
         }
 
         return $widgetUniqueId;
-    }
-
-    /**
-     * @return string[]
-     */
-    private static function getAllWidgetContainerConfigClassNames()
-    {
-        return PluginManager::getInstance()->findMultipleComponents('Widgets', 'Piwik\\Widget\\WidgetContainerConfig');
     }
 
 }

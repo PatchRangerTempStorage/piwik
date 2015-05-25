@@ -34,15 +34,6 @@ class Controller extends \Piwik\Plugin\Controller
         parent::__construct();
     }
 
-    public function index()
-    {
-        $view = new View('@VisitsSummary/index');
-        $this->setPeriodVariablesView($view);
-        $view->graphEvolutionVisitsSummary = $this->getEvolutionGraph(array(), array('nb_visits'));
-        $this->setSparklinesAndNumbers($view);
-        return $view->render();
-    }
-
     public function getEvolutionGraph(array $columns = array(), array $defaultColumns = array())
     {
         if (empty($columns)) {
@@ -118,88 +109,5 @@ class Controller extends \Piwik\Plugin\Controller
         ));
 
         return empty($result) ? new DataTable() : $result;
-    }
-
-    public static function getVisits()
-    {
-        $requestString = "method=VisitsSummary.getVisits" .
-            "&format=original" .
-            "&disable_generic_filters=1";
-        $request = new Request($requestString);
-        return $request->process();
-    }
-
-    protected function setSparklinesAndNumbers($view)
-    {
-        $view->urlSparklineNbVisits = $this->getUrlSparkline('get', array('columns' => $view->displayUniqueVisitors ? array('nb_visits', 'nb_uniq_visitors') : array('nb_visits')));
-        $view->urlSparklineNbUsers = $this->getUrlSparkline('get', array('columns' => array('nb_users')));
-        $view->urlSparklineNbPageviews = $this->getUrlSparkline('get', array('columns' => array('nb_pageviews', 'nb_uniq_pageviews')));
-        $view->urlSparklineNbDownloads = $this->getUrlSparkline('get', array('columns' => array('nb_downloads', 'nb_uniq_downloads')));
-        $view->urlSparklineNbOutlinks = $this->getUrlSparkline('get', array('columns' => array('nb_outlinks', 'nb_uniq_outlinks')));
-        $view->urlSparklineAvgVisitDuration = $this->getUrlSparkline('get', array('columns' => array('avg_time_on_site')));
-        $view->urlSparklineMaxActions = $this->getUrlSparkline('get', array('columns' => array('max_actions')));
-        $view->urlSparklineActionsPerVisit = $this->getUrlSparkline('get', array('columns' => array('nb_actions_per_visit')));
-        $view->urlSparklineBounceRate = $this->getUrlSparkline('get', array('columns' => array('bounce_rate')));
-        $view->urlSparklineAvgGenerationTime = $this->getUrlSparkline('get', array('columns' => array('avg_time_generation')));
-
-        $idSite = Common::getRequestVar('idSite');
-        $displaySiteSearch = Site::isSiteSearchEnabledFor($idSite);
-        if ($displaySiteSearch) {
-            $view->urlSparklineNbSearches = $this->getUrlSparkline('get', array('columns' => array('nb_searches', 'nb_keywords')));
-        }
-        $view->displaySiteSearch = $displaySiteSearch;
-
-        $dataTableVisit = self::getVisitsSummary();
-        $dataRow = $dataTableVisit->getRowsCount() == 0 ? new Row() : $dataTableVisit->getFirstRow();
-        $view->nbUniqVisitors = (int)$dataRow->getColumn('nb_uniq_visitors');
-        $view->nbUsers = (int)$dataRow->getColumn('nb_users');
-        $nbVisits = (int)$dataRow->getColumn('nb_visits');
-        $view->nbVisits = $nbVisits;
-
-        $view->averageVisitDuration = $dataRow->getColumn('avg_time_on_site');
-        $view->bounceRate = $dataRow->getColumn('bounce_rate');
-        $view->maxActions = (int)$dataRow->getColumn('max_actions');
-        $view->nbActionsPerVisit = $dataRow->getColumn('nb_actions_per_visit');
-
-        if (Common::isActionsPluginEnabled()) {
-            $view->showActionsPluginReports = true;
-
-            $dataTableActions = Request::processRequest("Actions.get", array(
-                'idSite' => $idSite,
-                'period' => Common::getRequestVar('period'),
-                'date' => Common::getRequestVar('date'),
-                'segment' => Request::getRawSegmentFromRequest()
-            ), $defaultParams = array());
-
-            $dataActionsRow =
-                $dataTableActions->getRowsCount() == 0 ? new Row() : $dataTableActions->getFirstRow();
-
-            $view->nbPageviews = (int)$dataActionsRow->getColumn('nb_pageviews');
-            $view->nbUniquePageviews = (int)$dataActionsRow->getColumn('nb_uniq_pageviews');
-            $view->nbDownloads = (int)$dataActionsRow->getColumn('nb_downloads');
-            $view->nbUniqueDownloads = (int)$dataActionsRow->getColumn('nb_uniq_downloads');
-            $view->nbOutlinks = (int)$dataActionsRow->getColumn('nb_outlinks');
-            $view->nbUniqueOutlinks = (int)$dataActionsRow->getColumn('nb_uniq_outlinks');
-            $view->averageGenerationTime = $dataActionsRow->getColumn('avg_time_generation');
-
-            if ($displaySiteSearch) {
-                $view->nbSearches = (int)$dataActionsRow->getColumn('nb_searches');
-                $view->nbKeywords = (int)$dataActionsRow->getColumn('nb_keywords');
-            }
-
-            // backward compatibility:
-            // show actions if the finer metrics are not archived
-            $view->showOnlyActions = false;
-            if ($dataActionsRow->getColumn('nb_pageviews')
-                + $dataActionsRow->getColumn('nb_downloads')
-                + $dataActionsRow->getColumn('nb_outlinks') == 0
-                && $dataRow->getColumn('nb_actions') > 0
-            ) {
-                $view->showOnlyActions = true;
-                $view->nbActions = $dataRow->getColumn('nb_actions');
-                $view->urlSparklineNbActions = $this->getUrlSparkline('getEvolutionGraph', array('columns' => array('nb_actions')));
-            }
-        }
-
     }
 }
