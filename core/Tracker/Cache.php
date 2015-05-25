@@ -13,6 +13,7 @@ use Piwik\ArchiveProcessor\Rules;
 use Piwik\Cache as PiwikCache;
 use Piwik\Common;
 use Piwik\Config;
+use Piwik\Filesystem;
 use Piwik\Option;
 use Piwik\Piwik;
 use Piwik\Plugin;
@@ -118,6 +119,8 @@ class Cache
     public static function clearCacheGeneral()
     {
         self::getCache()->delete(self::$cacheIdGeneral);
+
+        Filesystem::invalidatePhpCacheForFile(PIWIK_INCLUDE_PATH . '/tmp/cache/tracker/piwikcache_1.php');
     }
 
     /**

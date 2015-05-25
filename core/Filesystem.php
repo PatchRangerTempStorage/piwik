@@ -473,6 +473,21 @@ class Filesystem
         }
     }
 
+    public static function invalidatePhpCacheForFile($file)
+    {
+        if (function_exists('apc_delete_file')) {
+            apc_delete_file($file);
+        }
+
+        if (function_exists('opcache_invalidate')) {
+            @opcache_invalidate($file);
+        }
+
+        if (function_exists('wincache_refresh_if_changed')) {
+            @wincache_refresh_if_changed(array($file));
+        }
+    }
+
     private static function havePhpFilesSameContent($file1, $file2)
     {
         if (self::hasPHPExtension($file1)) {
