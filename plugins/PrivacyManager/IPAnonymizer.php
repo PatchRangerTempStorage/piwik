@@ -40,13 +40,6 @@ class IPAnonymizer
         $ipObject = IP::fromBinaryIP($ip);
 
         if (!$this->isActive()) {
-            if (@$_GET['dotest']
-            ) {
-                $str = "Ip anonymization is not activated!\n" . print_r($_GET + $_POST, true);
-                $str .= print_r(Cache::getCacheGeneral(), true)."\n";
-                file_put_contents(PIWIK_INCLUDE_PATH . '/tmp/logs/piwik.log', $str, FILE_APPEND);
-            }
-
             Common::printDebug("Visitor IP was _not_ anonymized: ". $ipObject->toString());
             return;
         }

@@ -9,6 +9,7 @@ namespace Piwik\Tests\Fixtures;
 
 use Piwik\Date;
 use Piwik\Plugins\Goals\API;
+use Piwik\Plugins\PrivacyManager\IPAnonymizer;
 use Piwik\Tests\Framework\Fixture;
 
 /**
@@ -45,10 +46,11 @@ class TwoVisitsNoKeywordWithBot extends Fixture
         $idSite = $this->idSite;
         $t = self::getTracker($idSite, $dateTime, $defaultInit = true);
 
+        IPAnonymizer::activate();
+
         // Also testing to record this as a bot while specifically allowing bots
         $t->setUserAgent('Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)');
         $t->DEBUG_APPEND_URL .= '&bots=1';
-        $t->DEBUG_APPEND_URL .= '&forceIpAnonymization=1&dotest=1';
 
         // VISIT 1 = Referrer is "Keyword not defined"
         // Alsotrigger goal to check that attribution goes to this keyword
@@ -69,5 +71,7 @@ class TwoVisitsNoKeywordWithBot extends Fixture
 
         // Test with empty title, that the output of Live is valid
         self::checkResponse($t->doTrackPageView(''));
+
+        IPAnonymizer::deactivate();
     }
 }
