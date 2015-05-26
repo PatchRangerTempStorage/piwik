@@ -291,7 +291,7 @@ function copyDashboardToUser() {
         },
 
         isWidgetAvailable: function (widgetUniqueId) {
-            return !$('#dashboardWidgetsArea').find('[widgetId=' + widgetUniqueId + ']').length;
+            return !$('#dashboardWidgetsArea').find('[widgetId="' + widgetUniqueId + '"]').length;
         },
 
         widgetSelected: function (widget) {

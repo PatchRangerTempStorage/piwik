@@ -65,7 +65,7 @@ class Controller extends \Piwik\Plugin\Controller
         Piwik::checkUserHasSomeViewAccess();
         $this->checkSitePermission();
 
-        $containerId = Common::getRequestVar('widgetContainerId', null, 'string');
+        $containerId = Common::getRequestVar('containerId', null, 'string');
 
         $view = new View('@CoreHome/widgetContainer');
 
@@ -73,7 +73,9 @@ class Controller extends \Piwik\Plugin\Controller
 
         $widgetsList = WidgetsList::get();
         foreach ($widgetsList->getWidgets() as $container) {
-            if ($container instanceof WidgetContainerConfig && $container->getId() === $containerId) {
+            if ($container instanceof WidgetContainerConfig
+                && $container->getId() === $containerId
+                && $container->isWidgetizeable()) {
 
                 $container->checkIsEnabled();
 

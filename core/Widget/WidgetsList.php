@@ -66,6 +66,17 @@ class WidgetsList
         }
     }
 
+    public function addWidgets($widgets)
+    {
+        foreach ($widgets as $widget) {
+            if ($widget instanceof WidgetContainerConfig) {
+                $this->addContainer($widget);
+            } else {
+                $this->addWidget($widget);
+            }
+        }
+    }
+
     public function getWidgets()
     {
         return $this->widgets;
@@ -191,7 +202,7 @@ class WidgetsList
                 // could we switch to using $value[0]?
                 $value = 'Array';
             }
-            $widgetUniqueId .= $name . $value;
+            $widgetUniqueId .= $name . urlencode($value);
         }
 
         return $widgetUniqueId;

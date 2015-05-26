@@ -58,6 +58,17 @@
                     scope.firstCategoryName = firstCategoryName;
                     scope.widgetsByCategory = widgetsByCategory;
 
+
+                    scope.$on("$includeContentError", function(event) {
+                        scope.loading = false;
+                    });
+                    scope.$on("$includeContentLoaded", function(event) {
+                        scope.loading = false;
+                    });
+                    scope.$on("$includeContentRequested", function(event) {
+                        scope.loading = true;
+                    });
+
                     scope.selectWidget = function (widget) {
                         if (!widget.html_url) {
                             widget.html_url = getFullWidgetUrl(widget);

@@ -388,7 +388,7 @@
      * @param {String} uniqueId
      */
     function reloadWidget(uniqueId) {
-        $('[widgetId=' + uniqueId + ']', dashboardElement).dashboardWidget('reload', false, true);
+        $('[widgetId="' + uniqueId + '"]', dashboardElement).dashboardWidget('reload', false, true);
     }
 
     /**
@@ -417,7 +417,7 @@
             $('.col:nth-child(' + columnNumber + ')', dashboardElement).append(widgetContent);
         }
 
-        $('[widgetId=' + uniqueId + ']', dashboardElement).dashboardWidget({
+        $('[widgetId="' + uniqueId + '"]', dashboardElement).dashboardWidget({
             uniqueId: uniqueId,
             widgetParameters: widgetParameters,
             onChange: function () {

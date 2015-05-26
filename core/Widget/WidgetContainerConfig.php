@@ -71,7 +71,7 @@ class WidgetContainerConfig extends WidgetConfig
     public function getParameters()
     {
         $params = parent::getParameters();
-        $params['widgetContainerId'] = $this->getId();
+        $params['containerId'] = $this->getId();
         return $params;
     }
 

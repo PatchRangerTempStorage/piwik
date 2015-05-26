@@ -383,7 +383,8 @@ widgetsHelper.loadWidgetAjax = function (widgetUniqueId, widgetParameters, onWid
                 previewElement.html(emptyWidgetHtml);
 
                 var onWidgetLoadedCallback = function (response) {
-                    var widgetElement = $('#' + widgetUniqueId);
+                    var widgetElement = $(document.getElementById(widgetUniqueId));
+                    // document.getElementById needed for widgets with uniqueid like widgetOpens+Contact+Form
                     $('.widgetContent', widgetElement).html($(response));
                     $('.widgetContent', widgetElement).trigger('widget:create');
                     settings.onPreviewLoaded(widgetUniqueId, widgetElement);

@@ -8,6 +8,7 @@
  */
 namespace Piwik\Plugins\Ecommerce\Reports;
 
+use Piwik\API\Request;
 use Piwik\Common;
 use Piwik\Metrics\Formatter;
 use Piwik\Piwik;
@@ -66,7 +67,31 @@ abstract class BaseItem extends Base
 
     public function configureWidgets(WidgetsList $widgetsList, ReportWidgetFactory $factory)
     {
-        $widgetsList->addToContainerWidget('Products', $factory->createWidget());
+        $conversions = $this->getConversionForGoal(Piwik::LABEL_ID_GOAL_IS_ECOMMERCE_ORDER);
+        $cartNbConversions = $this->getConversionForGoal(Piwik::LABEL_ID_GOAL_IS_ECOMMERCE_CART);
+        $preloadAbandonedCart = $cartNbConversions !== false && $conversions == 0;
+
+        $ecommerceCustomParams = array();
+        if ($preloadAbandonedCart) {
+            $ecommerceCustomParams['abandonedCarts'] = '1';
+        } else {
+            $ecommerceCustomParams['abandonedCarts'] = '0';
+        }
+
+        $widgetsList->addToContainerWidget('Products', $factory->createWidget()->setParameters($ecommerceCustomParams));
+    }
+
+    private function getConversionForGoal($idGoal = '')
+    {
+        $request = new Request("method=Goals.get&format=original&idGoal=$idGoal");
+        $datatable = $request->process();
+        $dataRow = $datatable->getFirstRow();
+
+        if (!$dataRow) {
+            return false;
+        }
+
+        return $dataRow->getColumn('nb_conversions');
     }
 
     public function configureView(ViewDataTable $view)
