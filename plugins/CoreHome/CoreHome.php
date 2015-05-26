@@ -124,8 +124,6 @@ class CoreHome extends \Piwik\Plugin
         $jsFiles[] = "plugins/CoreHome/angularjs/common/services/report-metadata-model.js";
         $jsFiles[] = "plugins/CoreHome/angularjs/common/services/dashboards-model.js";
         $jsFiles[] = "plugins/CoreHome/angularjs/common/services/reporting-pages-model.js";
-        $jsFiles[] = "plugins/CoreHome/angularjs/common/services/reporting-page-model.js";
-        $jsFiles[] = "plugins/CoreHome/angularjs/common/services/reporting-menu-model.js";
 
         $jsFiles[] = "plugins/CoreHome/angularjs/common/filters/filter.module.js";
         $jsFiles[] = "plugins/CoreHome/angularjs/common/filters/translate.js";
@@ -166,10 +164,16 @@ class CoreHome extends \Piwik\Plugin
         $jsFiles[] = "plugins/CoreHome/angularjs/ajax-form/ajax-form.controller.js";
         $jsFiles[] = "plugins/CoreHome/angularjs/ajax-form/ajax-form.directive.js";
 
-        $jsFiles[] = "plugins/CoreHome/angularjs/reporting-page/reportingpage.directive.js";
         $jsFiles[] = "plugins/CoreHome/angularjs/widget-bydimension-container/widget-bydimension-container.directive.js";
         $jsFiles[] = "plugins/CoreHome/angularjs/widget-container/widgetcontainer.directive.js";
         $jsFiles[] = "plugins/CoreHome/angularjs/widget/widget.directive.js";
+
+        $jsFiles[] = "plugins/CoreHome/angularjs/reporting-page/reportingpage.controller.js";
+        $jsFiles[] = "plugins/CoreHome/angularjs/reporting-page/reportingpage-model.js";
+        $jsFiles[] = "plugins/CoreHome/angularjs/reporting-page/reportingpage.directive.js";
+
+        $jsFiles[] = "plugins/CoreHome/angularjs/reporting-menu/reportingmenu.controller.js";
+        $jsFiles[] = "plugins/CoreHome/angularjs/reporting-menu/reportingmenu-model.js";
         $jsFiles[] = "plugins/CoreHome/angularjs/reporting-menu/reportingmenu.directive.js";
     }
 

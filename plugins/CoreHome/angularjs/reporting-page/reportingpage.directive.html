@@ -7,7 +7,7 @@
         Failed to load content
     </div>
 
-    <div ng-if="pageContentUrl" onload="pageLoaded()" ng-include="pageContentUrl"></div>
+    <div ng-if="pageContentUrl" onload="pageContentLoaded()" ng-include="pageContentUrl"></div>
 
     <div ng-repeat="evolutionReport in pageModel.evolutionReports" piwik-widget widget="evolutionReport"></div>
 

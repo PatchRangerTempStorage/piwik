@@ -5,7 +5,7 @@
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  */
 (function () {
-    angular.module('piwikApp.service').factory('reportingPageModel', reportingPageModelService);
+    angular.module('piwikApp').factory('reportingPageModel', reportingPageModelService);
 
     reportingPageModelService.$inject = ['$filter', 'piwikApi', 'reportingPagesModel', 'reportMetadataModel'];
 
@@ -34,6 +34,29 @@
             model.sparklineReports = [];
         }
 
+        function sortWidgets(widgets)
+        {
+            return $filter('orderBy')(widgets, 'order');
+        }
+
+        function shouldBeRenderedWithFullWidth(widget)
+        {
+            // rather controller logic
+            if ((widget.isContainer && widget.layout && widget.layout === 'ByDimension')
+                || widget.viewDataTable === 'bydimension') {
+                return true;
+            }
+
+            return widget.viewDataTable && widget.viewDataTable === 'tableAllColumns';
+        }
+
+        function forceAngularToReRenderPage(widget)
+        {
+            // eg if you click on Referrers=>All Referrers multiple times it would not re-render the page if we do not
+            // create new widget instances as it thinks it is already rendered (which is kinda correct)
+            return angular.copy(widget);
+        }
+
         function buildPage(page)
         {
             if (!page) {
@@ -52,25 +75,15 @@
                 reportsToIgnore = reportsToIgnore.concat(getRelatedReports(widget));
 
                 if (widget.viewDataTable && widget.viewDataTable === 'graphEvolution') {
-                    model.evolutionReports.push(widget);
+                    model.evolutionReports.push(forceAngularToReRenderPage(widget));
                 } else if (widget.viewDataTable && widget.viewDataTable === 'sparklines') {
-                    model.sparklineReports.push(widget);
+                    model.sparklineReports.push(forceAngularToReRenderPage(widget));
                 } else {
-                    widgets.push(widget);
+                    widgets.push(forceAngularToReRenderPage(widget));
                 }
             });
 
-            widgets = $filter('orderBy')(widgets, 'order');
-
-            function shouldBeRenderedWithFullWidth(widget)
-            {
-                if ((widget.isContainer && widget.layout && widget.layout === 'ByDimension')
-                    || widget.viewDataTable === 'bydimension') {
-                    return true;
-                }
-
-                return widget.viewDataTable && widget.viewDataTable === 'tableAllColumns';
-            }
+            widgets = sortWidgets(widgets);
 
             var groupedWidgets = [];
 

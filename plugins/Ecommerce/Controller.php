@@ -8,7 +8,6 @@
  */
 namespace Piwik\Plugins\Ecommerce;
 
-use Exception;
 use Piwik\DataTable;
 use Piwik\FrontController;
 use Piwik\Piwik;
@@ -31,20 +30,39 @@ class Controller extends \Piwik\Plugins\Goals\Controller
 
     public function getSparklines()
     {
-        $view = $this->getGoalReportView($idGoal = Piwik::LABEL_ID_GOAL_IS_ECOMMERCE_ORDER);
-        $view->displayFullReport = false;
-        $view->conversionsOverViewEnabled = false;
-        $view->headline = false;
+        $idGoal = Piwik::LABEL_ID_GOAL_IS_ECOMMERCE_ORDER;
 
-        return $view->render();
-    }
+        $view = new View('@Ecommerce/getSparklines');
+        $view->onlyConversionOverview = false;
+        $view->conversionsOverViewEnabled = true;
 
-    public function ecommerceLogReport($fetch = false)
-    {
-        $view = new View('@Ecommerce/ecommerceLog');
+        if ($idGoal == Piwik::LABEL_ID_GOAL_IS_ECOMMERCE_ORDER) {
+            $goalDefinition['name'] = $this->translator->translate('Goals_Ecommerce');
+            $goalDefinition['allow_multiple'] = true;
+        } else {
+            if (!isset($this->goals[$idGoal])) {
+                Piwik::redirectToModule('Goals', 'index', array('idGoal' => null));
+            }
+            $goalDefinition = $this->goals[$idGoal];
+        }
+
         $this->setGeneralVariablesView($view);
 
-        $view->ecommerceLog = $this->getEcommerceLog($fetch);
+        $goal = $this->getMetricsForGoal($idGoal);
+        foreach ($goal as $name => $value) {
+            $view->$name = $value;
+        }
+
+        if ($idGoal == Piwik::LABEL_ID_GOAL_IS_ECOMMERCE_ORDER) {
+            $goal = $this->getMetricsForGoal(Piwik::LABEL_ID_GOAL_IS_ECOMMERCE_CART);
+            foreach ($goal as $name => $value) {
+                $name = 'cart_' . $name;
+                $view->$name = $value;
+            }
+        }
+
+        $view->idGoal = $idGoal;
+        $view->goalAllowMultipleConversionsPerVisit = $goalDefinition['allow_multiple'];
 
         return $view->render();
     }
@@ -58,11 +76,6 @@ class Controller extends \Piwik\Plugins\Goals\Controller
         $_GET   = $saveGET;
 
         return $output;
-    }
-
-    public function index()
-    {
-        return $this->ecommerceReport();
     }
 
 }

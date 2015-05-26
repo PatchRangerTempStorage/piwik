@@ -5,7 +5,7 @@
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  */
 (function () {
-    angular.module('piwikApp.service').factory('reportingMenuModel', reportingMenuModelService);
+    angular.module('piwikApp').factory('reportingMenuModel', reportingMenuModelService);
 
     reportingMenuModelService.$inject = ['$filter', '$q', 'piwikApi', 'reportingPagesModel', 'dashboardsModel'];
 

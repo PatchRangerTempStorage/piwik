@@ -18,6 +18,7 @@ use Piwik\Plugins\Goals\API;
 use Piwik\Plugins\Goals\Goals;
 use Piwik\Plugins\Goals\Pages;
 use Piwik\Report\ReportWidgetFactory;
+use Piwik\Site;
 use Piwik\Widget\WidgetsList;
 
 class Get extends Base
@@ -41,11 +42,17 @@ class Get extends Base
         $goals   = API::getInstance()->getGoals($idSite);
         $reports = Goals::getReportsWithGoalMetrics();
 
+        $site = new Site($idSite);
+        $ecommerceEnabled = $site->isEcommerceEnabled();
+
         $page = new Pages($factory, $reports);
 
         $allPages   = array();
         $allPages[] = $page->createGoalsOverviewPage($goals);
-        $allPages[] = $page->createEcommerceOverviewPage();
+
+        if ($ecommerceEnabled) {
+            $allPages[] = $page->createEcommerceOverviewPage();
+        }
 
         foreach ($goals as $goal) {
             $allPages[] = $page->createGoalDetailPage($goal);
@@ -57,17 +64,20 @@ class Get extends Base
             $this->makePageWidgetizable($widgets, $order++, $widgetsList, $factory);
         }
 
-
         // we do not want to create a widgetizable widget for this page
-        $widgetsList->addWidgets($page->createEcommerceSalesPage());
+        if ($ecommerceEnabled) {
+            $widgetsList->addWidgets($page->createEcommerceSalesPage());
+        }
     }
 
     private function makePageWidgetizable($widgets, $order, WidgetsList $widgetsList, ReportWidgetFactory $factory)
     {
+        /** @var \Piwik\Widget\WidgetConfig[] $widgets */
         $firstWidget = reset($widgets);
 
-        /** @var \Piwik\Widget\WidgetConfig[] $widgets */
-        $config = $factory->createContainerWidget($firstWidget->getSubCategory());
+        $id = $firstWidget->getCategory() . $firstWidget->getSubCategory();
+
+        $config = $factory->createContainerWidget($id);
         $config->setName($firstWidget->getSubCategory());
         $config->setCategory($firstWidget->getCategory());
         $config->setSubCategory('');

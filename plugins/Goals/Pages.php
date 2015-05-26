@@ -165,14 +165,18 @@ class Pages
         $config->setIsNotWidgetizable();
         $widgets[] = $config;
 
-        $config = $this->factory->createWidget();
-        $config->setAction('goalConversionsOverview');
-        $config->setSubCategory($name);
-        $config->setName('Goals_ConversionsOverview');
-        $config->setParameters($params);
-        $config->setOrder(++$this->orderId);
-        $config->setIsNotWidgetizable();
-        $widgets[] = $config;
+        $conversions = $this->getConversionForGoal($idGoal);
+
+        if ($conversions > 0) {
+            $config = $this->factory->createWidget();
+            $config->setAction('goalConversionsOverview');
+            $config->setSubCategory($name);
+            $config->setName('Goals_ConversionsOverview');
+            $config->setParameters($params);
+            $config->setOrder(++$this->orderId);
+            $config->setIsNotWidgetizable();
+            $widgets[] = $config;
+        }
 
         $config = $this->factory->createContainerWidget('Goals' . $idGoal);
         $config->setName(Piwik::translate('Goals_GoalConversionsBy', array($name)));
