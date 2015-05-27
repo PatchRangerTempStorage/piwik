@@ -40,11 +40,11 @@ function initDashboard(dashboardId, dashboardLayout) {
 }
 
 function createDashboard() {
-    $('#createDashboardName').val('');
+    $(makeSelectorLastId('createDashboardName')).val('');
 
-    piwikHelper.modalConfirm('#createDashboardConfirm', {yes: function () {
-        var dashboardName = $('#createDashboardName').val();
-        var type = ($('#dashboard_type_empty:checked').length > 0) ? 'empty' : 'default';
+    piwikHelper.modalConfirm(makeSelectorLastId('createDashboardConfirm'), {yes: function () {
+        var dashboardName = $(makeSelectorLastId('createDashboardName')).val();
+        var type = ($('[id=dashboard_type_empty]:last:checked').length > 0) ? 'empty' : 'default';
 
         var ajaxRequest = new ajaxHelper();
         ajaxRequest.setLoadingElement();
@@ -58,11 +58,13 @@ function createDashboard() {
         }, 'post');
         ajaxRequest.setCallback(
             function (id) {
-                angular.element(document).injector().invoke(function ($location, reportingMenuModel) {
 
-                    $location.search('subcategory', dashboardName);
-
-                    reportingMenuModel.reloadMenuItems();
+                angular.element(document).injector().invoke(function ($location, reportingMenuModel, dashboardsModel) {
+                    reportingMenuModel.reloadMenuItems().then(function () {
+                        dashboardsModel.reloadAllDashboards().then(function () {
+                            $('#dashboardWidgetsArea').dashboard('loadDashboard', id);
+                        });
+                    });
                 });
             }
         );
@@ -72,7 +74,7 @@ function createDashboard() {
 
 function makeSelectorLastId(domElementId)
 {
-    // there can be many elements with this id, prefer the last one
+    // there can be many elements with this id, we prefer the last one
     return '[id=' + domElementId + ']:last';
 }
 
@@ -110,14 +112,14 @@ function showChangeDashboardLayoutDialog() {
 }
 
 function showEmptyDashboardNotification() {
-    piwikHelper.modalConfirm('#dashboardEmptyNotification', {
+    piwikHelper.modalConfirm(makeSelectorLastId('dashboardEmptyNotification'), {
         resetDashboard: function () { $('#dashboardWidgetsArea').dashboard('resetLayout'); },
         addWidget: function () { $('.dashboardSettings').trigger('click'); }
     });
 }
 
 function setAsDefaultWidgets() {
-    piwikHelper.modalConfirm('#setAsDefaultWidgetsConfirm', {
+    piwikHelper.modalConfirm(makeSelectorLastId('setAsDefaultWidgetsConfirm'), {
         yes: function () {
             $('#dashboardWidgetsArea').dashboard('saveLayoutAsDefaultWidgetLayout');
         }
@@ -125,7 +127,7 @@ function setAsDefaultWidgets() {
 }
 
 function copyDashboardToUser() {
-    $('#copyDashboardName').val($('#dashboardWidgetsArea').dashboard('getDashboardName'));
+    $(makeSelectorLastId('copyDashboardName')).val($('#dashboardWidgetsArea').dashboard('getDashboardName'));
     var ajaxRequest = new ajaxHelper();
     ajaxRequest.addParams({
         module: 'API',
@@ -134,13 +136,13 @@ function copyDashboardToUser() {
     }, 'get');
     ajaxRequest.setCallback(
         function (availableUsers) {
-            $('#copyDashboardUser').empty();
-            $('#copyDashboardUser').append(
+            $(makeSelectorLastId('copyDashboardUser')).empty();
+            $(makeSelectorLastId('copyDashboardUser')).append(
                 $('<option></option>').val(piwik.userLogin).text(piwik.userLogin)
             );
             $.each(availableUsers, function (index, user) {
                 if (user.login != 'anonymous' && user.login != piwik.userLogin) {
-                    $('#copyDashboardUser').append(
+                    $(makeSelectorLastId('copyDashboardUser')).append(
                         $('<option></option>').val(user.login).text(user.login + ' (' + user.alias + ')')
                     );
                 }
@@ -149,10 +151,10 @@ function copyDashboardToUser() {
     );
     ajaxRequest.send(true);
 
-    piwikHelper.modalConfirm('#copyDashboardToUserConfirm', {
+    piwikHelper.modalConfirm(makeSelectorLastId('copyDashboardToUserConfirm'), {
         yes: function () {
-            var copyDashboardName = $('#copyDashboardName').val();
-            var copyDashboardUser = $('#copyDashboardUser').val();
+            var copyDashboardName = $(makeSelectorLastId('copyDashboardName')).val();
+            var copyDashboardUser = $(makeSelectorLastId('copyDashboardUser')).val();
 
             var ajaxRequest = new ajaxHelper();
             ajaxRequest.addParams({

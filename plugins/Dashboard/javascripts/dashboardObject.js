@@ -54,13 +54,7 @@
             if (options.name) {
                 dashboardName = options.name;
             } else {
-                angular.element(document).injector().invoke(function (dashboardsModel) {
-                    dashboardsModel.getDashboard(dashboardId).then(function (dashboard) {
-                        if (dashboard && dashboard.name) {
-                            dashboardName = dashboard.name;
-                        }
-                    });
-                });
+                methods.fetchDashboardName.apply(this, [dashboardId]);
             }
 
             if (options.layout) {
@@ -70,6 +64,25 @@
             }
 
             return this;
+        },
+
+        fetchDashboardName: function (dashboardId) {
+            if (!dashboardId) {
+                return;
+            }
+
+            var promise;
+            angular.element(document).injector().invoke(function (dashboardsModel) {
+                promise = dashboardsModel.getDashboard(dashboardId).then(function (dashboard) {
+                    if (dashboard) {
+                        dashboardName = dashboard.name;
+                    }
+
+                    return dashboardName;
+                });
+            });
+
+            return promise;
         },
 
         /**
@@ -96,10 +109,13 @@
             dashboardName = '';
             dashboardLayout = null;
             dashboardId = dashboardIdToLoad;
-            piwikHelper.showAjaxLoading();
-            broadcast.updateHashOnly = true;
-            broadcast.propagateAjax('?idDashboard=' + dashboardIdToLoad);
-            fetchLayout(generateLayout);
+
+            angular.element(document).injector().invoke(function ($location) {
+                methods.fetchDashboardName(dashboardId).then(function (dashboardName) {
+                    $location.search('subcategory', dashboardName);
+                });
+            });
+
             return this;
         },
 
@@ -237,24 +253,6 @@
         }
 
         makeWidgetsSortable();
-    }
-
-    /**
-     * Fetches the layout for the currently set dashboard id
-     * and passes the response to given callback function
-     *
-     * @param {function} callback
-     */
-    function fetchLayout(callback) {
-        globalAjaxQueue.abort();
-        var ajaxRequest = new ajaxHelper();
-        ajaxRequest.addParams({
-            module: 'Dashboard',
-            action: 'getDashboardLayout',
-            idDashboard: dashboardId
-        }, 'get');
-        ajaxRequest.setCallback(callback);
-        ajaxRequest.send(false);
     }
 
     /**
@@ -550,6 +548,7 @@
         }, 'get');
         ajaxRequest.setCallback(
             function () {
+                rebuildMenu();
                 methods.loadDashboard.apply(this, [1]);
             }
         );

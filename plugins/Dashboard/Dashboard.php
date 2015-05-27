@@ -234,6 +234,7 @@ class Dashboard extends \Piwik\Plugin
 
     public function getJsFiles(&$jsFiles)
     {
+        $jsFiles[] = "plugins/Dashboard/angularjs/common/services/dashboards-model.js";
         $jsFiles[] = "plugins/Dashboard/javascripts/widgetMenu.js";
         $jsFiles[] = "libs/javascript/json2.js";
         $jsFiles[] = "plugins/Dashboard/javascripts/dashboardObject.js";

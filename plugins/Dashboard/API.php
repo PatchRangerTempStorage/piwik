@@ -75,11 +75,8 @@ class API extends \Piwik\Plugin\API
         $dashboards = array();
 
         foreach ($userDashboards as $userDashboard) {
-
-            if ($this->hasDashboardColumns($userDashboard)) {
-                $widgets = $this->getExistingWidgetsWithinDashboard($userDashboard, $widgetsList);
-                $dashboards[] = $this->buildDashboard($userDashboard, $widgets);
-            }
+            $widgets = $this->getExistingWidgetsWithinDashboard($userDashboard, $widgetsList);
+            $dashboards[] = $this->buildDashboard($userDashboard, $widgets);
         }
 
         return $dashboards;
@@ -115,16 +112,6 @@ class API extends \Piwik\Plugin\API
         }
 
         return $dashboard['layout']->columns;
-    }
-
-    private function hasDashboardColumns($dashboard)
-    {
-        if (is_array($dashboard['layout'])) {
-
-            return !empty($dashboard['layout']);
-        }
-
-        return !empty($dashboard['layout']->columns);
     }
 
     private function buildDashboard($dashboard, $widgets)
