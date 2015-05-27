@@ -7,21 +7,27 @@
 (function () {
     angular.module('piwikApp').factory('reportingMenuModel', reportingMenuModelService);
 
-    reportingMenuModelService.$inject = ['$filter', '$q', 'piwikApi', 'reportingPagesModel', 'dashboardsModel'];
+    reportingMenuModelService.$inject = ['$filter', '$q', 'piwikApi', 'reportingPagesModel', 'dashboardsModel', '$location'];
 
-    function reportingMenuModelService ($filter, $q, piwikApi, reportingPagesModel, dashboardsModel) {
+    function reportingMenuModelService ($filter, $q, piwikApi, reportingPagesModel, dashboardsModel, $location) {
 
         // those sites are going to be displayed
         var model = {
             menu: [],
-            fetchMenuItems: fetchMenuItems
+            fetchMenuItems: fetchMenuItems,
+            reloadMenuItems: reloadMenuItems
         };
 
         return model;
 
-        function buildMenuFromPages(pages, allDashboards, activeCategory, activeSubCategory)
+        function buildMenuFromPages(pages)
         {
             var menu = [];
+
+            var url = $location.path();
+            url = encodeURI(url);
+            var activeCategory = decodeURIComponent(piwik.broadcast.getParamValue('category', url));
+            var activeSubCategory = decodeURIComponent(piwik.broadcast.getParamValue('subcategory', url));
 
             var categoriesHandled = {};
             angular.forEach(pages, function (page, key) {
@@ -53,7 +59,7 @@
                         }
 
                         // also this rather controller logic, not model logic
-                        subcategory.html_url = 'module=CoreHome&action=index&category=' + categoryId + '&subcategory='+ subcategory.id;
+                        subcategory.html_url = 'category=' + categoryId + '&subcategory='+ subcategory.id;
 
                         if (page.widgets && page.widgets[0] && page.widgets[0].parameters.idGoal && page.category.id === 'Goals_Goals') {
                             // we handle a goal
@@ -84,53 +90,40 @@
                     angular.forEach(goalsGroup.subcategories, function (subcategory) {
                         category.subcategories.push(subcategory);
                     });
-                } else {
+                } else if(goalsGroup) {
                     category.subcategories.push(goalsGroup);
                 }
 
-                category.subcategories = $filter('orderBy')(category.subcategories, 'order');
+                category.subcategories = sortMenuItems(category.subcategories);
 
                 menu.push(category);
 
                 return menu;
             });
 
-            var dashboards = {
-                name: 'Dashboards',  // TODO use translation
-                order: 1,
-                subcategories: []
-            }
-
-            angular.forEach(allDashboards, function (dashboard, key) {
-                var subcategory = dashboard.name;
-
-                if (!activeCategory) {
-                    dashboards.active = true;
-                    dashboards.hover  = true;
-                }
-
-                dashboard.order = key;
-                dashboard.html_url = 'module=Dashboard&action=embeddedIndex&idDashboard=' + dashboard.id;
-
-                dashboards.subcategories.push(dashboard);
-            });
-            menu.push(dashboards);
+            menu = sortMenuItems(menu);
 
             return menu;
         }
 
-        function fetchMenuItems(activeCategory, activeSubCategory)
+        function sortMenuItems(menu) {
+            return $filter('orderBy')(menu, 'order');
+        };
+
+        function reloadMenuItems()
         {
-            var pagesPromise = reportingPagesModel.fetchAllPages();
-            var dashboardsPromise = dashboardsModel.fetchAllDashboards();
+            var pagesPromise = reportingPagesModel.reloadAllPages();
+            return pagesPromise.then(function (pages) {
+                model.menu = buildMenuFromPages(pages);
+            });
+        }
 
-            return $q.all([pagesPromise, dashboardsPromise]).then(function (response) {
-                var pages = response[0];
-                var dashboards = response[1];
+        function fetchMenuItems()
+        {
+            var pagesPromise = reportingPagesModel.getAllPages();
 
-                var menu = buildMenuFromPages(pages, dashboards, activeCategory, activeSubCategory);
-
-                model.menu = $filter('orderBy')(menu, 'order');
+            return pagesPromise.then(function (pages) {
+                model.menu = buildMenuFromPages(pages);
 
                 return model.menu;
             });

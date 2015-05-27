@@ -53,11 +53,18 @@
 
             if (options.name) {
                 dashboardName = options.name;
+            } else {
+                angular.element(document).injector().invoke(function (dashboardsModel) {
+                    dashboardsModel.getDashboard(dashboardId).then(function (dashboard) {
+                        if (dashboard && dashboard.name) {
+                            dashboardName = dashboard.name;
+                        }
+                    });
+                });
             }
 
             if (options.layout) {
                 generateLayout(options.layout);
-                buildMenu();
             } else {
                 methods.loadDashboard.apply(this, [dashboardId]);
             }
@@ -93,7 +100,6 @@
             broadcast.updateHashOnly = true;
             broadcast.propagateAjax('?idDashboard=' + dashboardIdToLoad);
             fetchLayout(generateLayout);
-            buildMenu();
             return this;
         },
 
@@ -468,60 +474,10 @@
     /**
      * Handle clicks for menu items for choosing between available dashboards
      */
-    function buildMenu() {
-        var success = function (dashboards) {
-            var dashboardMenuList = $('#Dashboard').find('> ul');
-            var dashboardMenuListItems = dashboardMenuList.find('>li');
-
-            dashboardMenuListItems.filter(function () {
-                return $(this).attr('id').indexOf('Dashboard_embeddedIndex') == 0;
-            }).remove();
-
-            if (dashboards.length > 1
-                || dashboardMenuListItems.length >= 1
-            ) {
-                var items = [];
-                for (var i = 0; i < dashboards.length; i++) {
-                    var $link = $('<a/>').attr('data-idDashboard', dashboards[i].iddashboard).text(dashboards[i].name);
-                    var $li = $('<li/>').attr('id', 'Dashboard_embeddedIndex_' + dashboards[i].iddashboard)
-                                        .addClass('dashboardMenuItem').append($link);
-                    items.push($li);
-
-                    if (dashboards[i].iddashboard == dashboardId) {
-                        dashboardName = dashboards[i].name;
-                        $li.addClass('sfHover');
-                    }
-                }
-                dashboardMenuList.prepend(items);
-            } else {
-                dashboardMenuList.hide();
-            }
-
-            dashboardMenuList.find('a[data-idDashboard]').click(function (e) {
-                e.preventDefault();
-
-                var idDashboard = $(this).attr('data-idDashboard');
-
-                if (typeof piwikMenu != 'undefined') {
-                    piwikMenu.activateMenu('Dashboard', 'embeddedIndex');
-                }
-                $('#Dashboard ul li').removeClass('sfHover');
-                if ($(dashboardElement).length) {
-                    $(dashboardElement).dashboard('loadDashboard', idDashboard);
-                } else {
-                    broadcast.propagateAjax('module=Dashboard&action=embeddedIndex&idDashboard=' + idDashboard);
-                }
-                $(this).closest('li').addClass('sfHover');
-            });
-        };
-
-        var ajaxRequest = new ajaxHelper();
-        ajaxRequest.addParams({
-            module: 'Dashboard',
-            action: 'getAllDashboards'
-        }, 'get');
-        ajaxRequest.setCallback(success);
-        ajaxRequest.send(false);
+    function rebuildMenu() {
+        angular.element(document).injector().invoke(function (reportingMenuModel) {
+            reportingMenuModel.reloadMenuItems();
+        });
     }
 
     /**
@@ -568,7 +524,7 @@
                 function () {
                     if (dashboardChanged) {
                         dashboardChanged = false;
-                        buildMenu();
+                        rebuildMenu();
                     }
                 }
             );

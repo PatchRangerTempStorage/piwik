@@ -16,7 +16,8 @@
         var model = {
             pages : [],
             findPage: findPage,
-            fetchAllPages : fetchAllPages
+            reloadAllPages : reloadAllPages,
+            getAllPages : getAllPages
         };
 
         return model;
@@ -36,7 +37,13 @@
             return found;
         }
 
-        function fetchAllPages()
+        function reloadAllPages()
+        {
+            fetchAllPagesPromise = null;
+            return getAllPages();
+        }
+
+        function getAllPages()
         {
             if (!fetchAllPagesPromise) {
                 fetchAllPagesPromise = piwikApi.fetch({method: 'API.getPagesMetadata'}).then(function (response) {

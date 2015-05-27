@@ -11,6 +11,7 @@ namespace Piwik\Plugins\Dashboard;
 use Piwik\Common;
 use Piwik\Db;
 use Piwik\Piwik;
+use Piwik\Widget\WidgetConfig;
 use Piwik\Widget\WidgetsList;
 
 /**
@@ -26,8 +27,35 @@ class Dashboard extends \Piwik\Plugin
             'AssetManager.getJavaScriptFiles'        => 'getJsFiles',
             'AssetManager.getStylesheetFiles'        => 'getStylesheetFiles',
             'UsersManager.deleteUser'                => 'deleteDashboardLayout',
-            'Translate.getClientSideTranslationKeys' => 'getClientSideTranslationKeys'
+            'Translate.getClientSideTranslationKeys' => 'getClientSideTranslationKeys',
+            'Widgets.addWidgets' => 'addWidgets'
         );
+    }
+
+    public function addWidgets(WidgetsList $widgetsList)
+    {
+        $dashboards = array();
+        $dashboard  = new Dashboard();
+
+        if (!Piwik::isUserIsAnonymous()) {
+            $login = Piwik::getCurrentUserLogin();
+            $dashboards = $dashboard->getAllDashboards($login);
+        }
+
+        if (empty($dashboards)) {
+            $dashboards[] = array('name' => 'Dashboard_Dashboard', 'iddashboard' => 1);
+        }
+
+        foreach ($dashboards as $dashboard) {
+            $config = new WidgetConfig();
+            $config->setIsNotWidgetizable();
+            $config->setModule('Dashboard');
+            $config->setAction('embeddedIndex');
+            $config->setCategory('Dashboard_Dashboard');
+            $config->setSubCategory($dashboard['name']);
+            $config->setParameters(array('idDashboard' => $dashboard['iddashboard']));
+            $widgetsList->addWidget($config);
+        }
     }
 
     /**

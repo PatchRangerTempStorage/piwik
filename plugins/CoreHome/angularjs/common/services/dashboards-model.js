@@ -15,16 +15,43 @@
 
         var model = {
             dashboards: [],
-            fetchAllDashboards: fetchAllDashboards
+            getAllDashboards: getAllDashboards,
+            reloadAllDashboards: reloadAllDashboards,
+            getDashboard: getDashboard
         };
 
         return model;
 
-        function fetchAllDashboards()
+        function getDashboard(dashboardId)
+        {
+            return getAllDashboards().then(function (dashboards) {
+                var dashboard = null;
+                angular.forEach(dashboards, function (board) {
+                    if (parseInt(board.id, 10) === parseInt(dashboardId, 10)) {
+                        dashboard = board;
+                    }
+                });
+                return dashboard;
+            });
+        }
+
+        function reloadAllDashboards()
+        {
+            if (dashboardsPromise) {
+                dashboardsPromise = null;
+            }
+
+            return getAllDashboards();
+        }
+
+        function getAllDashboards()
         {
             if (!dashboardsPromise) {
                 dashboardsPromise = piwikApi.fetch({method: 'Dashboard.getDashboards'}).then(function (response) {
-                    model.dashboards = response;
+                    if (response) {
+                        model.dashboards = response;
+                    }
+
                     return response;
                 });
             }

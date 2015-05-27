@@ -7,7 +7,6 @@
  */
 namespace Piwik\Plugins\Dashboard;
 
-use Piwik\API\Request;
 use Piwik\Common;
 use Piwik\DataTable\Renderer\Json;
 use Piwik\Db;
@@ -50,12 +49,14 @@ class Controller extends \Piwik\Plugin\Controller
         return $view;
     }
 
+    // this
     public function embeddedIndex()
     {
         $view = $this->_getDashboardView('@Dashboard/embeddedIndex');
         return $view->render();
     }
 
+    // this is the exported widget
     public function index()
     {
         $view = $this->_getDashboardView('@Dashboard/index');

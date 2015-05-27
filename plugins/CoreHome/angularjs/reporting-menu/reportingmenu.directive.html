@@ -1,16 +1,15 @@
 <div class="Menu--dashboard">
     <ul class="Menu-tabList">
-        <li ng-repeat="category in menu"
+        <li ng-repeat="category in menuModel.menu"
             ng-class="{'sfActive': category.active, 'sfHover': category.hover}"
             ng-mouseenter="enterCategory(category)"
             ng-mouseleave="leaveCategory(category)">
             <a class="menuItem" ng-click="loadSubcategory(category, category.subcategories[0])">
                 {{ category.name }}
             </a>
-            <ul>
+            <ul ng-show="(category.subcategories|length) > 1">
                 <li ng-repeat="subcategory in category.subcategories"
                     ng-class="{'sfHover': subcategory.active}">
-
                     <div ng-if="subcategory.isGroup" piwik-menudropdown show-search="true" menu-title="{{ subcategory.name }}">
                         <a class="item"
                            ng-repeat="subcat in subcategory.subcategories"

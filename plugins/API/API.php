@@ -12,7 +12,6 @@ use Piwik\API\Proxy;
 use Piwik\API\Request;
 use Piwik\Cache;
 use Piwik\CacheId;
-use Piwik\Columns\Dimension;
 use Piwik\Common;
 use Piwik\Config;
 use Piwik\Container\StaticContainer;
@@ -25,19 +24,13 @@ use Piwik\Metrics;
 use Piwik\Period;
 use Piwik\Period\Range;
 use Piwik\Piwik;
-use Piwik\Widget\Category;
 use Piwik\Plugin\Dimension\VisitDimension;
 use Piwik\Plugin\Report;
-use Piwik\Widget\SubCategory;
 use Piwik\Plugins\API\DataTable\MergeDataTables;
 use Piwik\Plugins\CoreAdminHome\CustomLogo;
-use Piwik\Report\ReportWidgetConfig;
 use Piwik\Segment\SegmentExpression;
 use Piwik\Translation\Translator;
 use Piwik\Version;
-use Piwik\Widget\WidgetConfig;
-use Piwik\Widget\WidgetContainerConfig;
-use Piwik\Widget\WidgetsList;
 
 require_once PIWIK_INCLUDE_PATH . '/core/Config.php';
 
@@ -106,160 +99,23 @@ class API extends \Piwik\Plugin\API
 
     public function getSegmentsMetadata($idSites = array(), $_hideImplementationData = true)
     {
-        $cache  = Cache::getTransientCache();
-        $cachKey = 'API.getSegmentsMetadata' . (is_array($idSites) ? implode('', $idSites) : $idSites);
+        $isAuthenticatedWithViewAccess = Piwik::isUserHasViewAccess($idSites) && !Piwik::isUserIsAnonymous();
+
+        $sites   = (is_array($idSites) ? implode('', $idSites) : $idSites);
+        $cache   = Cache::getTransientCache();
+        $cachKey = 'API.getSegmentsMetadata' . $sites . '_' . (int) $_hideImplementationData . '_' . (int) $isAuthenticatedWithViewAccess;
         $cachKey = CacheId::pluginAware($cachKey);
 
         if ($cache->contains($cachKey)) {
             return $cache->fetch($cachKey);
         }
 
-        $segments = array();
-
-        foreach (Dimension::getAllDimensions() as $dimension) {
-            foreach ($dimension->getSegments() as $segment) {
-                $segments[] = $segment->toArray();
-            }
-        }
-
-        /**
-         * Triggered when gathering all available segment dimensions.
-         *
-         * This event can be used to make new segment dimensions available.
-         *
-         * **Example**
-         *
-         *     public function getSegmentsMetadata(&$segments, $idSites)
-         *     {
-         *         $segments[] = array(
-         *             'type'           => 'dimension',
-         *             'category'       => Piwik::translate('General_Visit'),
-         *             'name'           => 'General_VisitorIP',
-         *             'segment'        => 'visitIp',
-         *             'acceptedValues' => '13.54.122.1, etc.',
-         *             'sqlSegment'     => 'log_visit.location_ip',
-         *             'sqlFilter'      => array('Piwik\IP', 'P2N'),
-         *             'permission'     => $isAuthenticatedWithViewAccess,
-         *         );
-         *     }
-         *
-         * @param array &$dimensions The list of available segment dimensions. Append to this list to add
-         *                           new segments. Each element in this list must contain the
-         *                           following information:
-         *
-         *                           - **type**: Either `'metric'` or `'dimension'`. `'metric'` means
-         *                                       the value is a numeric and `'dimension'` means it is
-         *                                       a string. Also, `'metric'` values will be displayed
-         *                                       under **Visit (metrics)** in the Segment Editor.
-         *                           - **category**: The segment category name. This can be an existing
-         *                                           segment category visible in the segment editor.
-         *                           - **name**: The pretty name of the segment. Can be a translation token.
-         *                           - **segment**: The segment name, eg, `'visitIp'` or `'searches'`.
-         *                           - **acceptedValues**: A string describing one or two exacmple values, eg
-         *                                                 `'13.54.122.1, etc.'`.
-         *                           - **sqlSegment**: The table column this segment will segment by.
-         *                                             For example, `'log_visit.location_ip'` for the
-         *                                             **visitIp** segment.
-         *                           - **sqlFilter**: A PHP callback to apply to segment values before
-         *                                            they are used in SQL.
-         *                           - **permission**: True if the current user has view access to this
-         *                                             segment, false if otherwise.
-         * @param array $idSites The list of site IDs we're getting the available segments
-         *                       for. Some segments (such as Goal segments) depend on the
-         *                       site.
-         */
-        Piwik::postEvent('API.getSegmentDimensionMetadata', array(&$segments, $idSites));
-
-        $isAuthenticatedWithViewAccess = Piwik::isUserHasViewAccess($idSites) && !Piwik::isUserIsAnonymous();
-
-        $segments[] = array(
-            'type'           => 'dimension',
-            'category'       => Piwik::translate('General_Visit'),
-            'name'           => 'General_UserId',
-            'segment'        => 'userId',
-            'acceptedValues' => 'any non empty unique string identifying the user (such as an email address or a username).',
-            'sqlSegment'     => 'log_visit.user_id',
-            'sqlFilter'      => array($this, 'checkSegmentMatchTypeIsValidForUser'),
-            'permission'     => $isAuthenticatedWithViewAccess,
-
-            // TODO specify that this segment is not compatible with some operators
-//            'unsupportedOperators' = array(MATCH_CONTAINS, MATCH_DOES_NOT_CONTAIN),
-        );
-
-        $segments[] = array(
-            'type'           => 'dimension',
-            'category'       => Piwik::translate('General_Visit'),
-            'name'           => 'General_VisitorID',
-            'segment'        => 'visitorId',
-            'acceptedValues' => '34c31e04394bdc63 - any 16 Hexadecimal chars ID, which can be fetched using the Tracking API function getVisitorId()',
-            'sqlSegment'     => 'log_visit.idvisitor',
-            'sqlFilterValue' => array('Piwik\Common', 'convertVisitorIdToBin'),
-            'permission'     => $isAuthenticatedWithViewAccess,
-        );
-
-        $segments[] = array(
-            'type'           => 'dimension',
-            'category'       => Piwik::translate('General_Visit'),
-            'name'           => Piwik::translate('General_Visit') . " ID",
-            'segment'        => 'visitId',
-            'acceptedValues' => 'Any integer. ',
-            'sqlSegment'     => 'log_visit.idvisit',
-            'permission'     => $isAuthenticatedWithViewAccess,
-        );
-
-        $segments[] = array(
-            'type'           => 'metric',
-            'category'       => Piwik::translate('General_Visit'),
-            'name'           => 'General_VisitorIP',
-            'segment'        => 'visitIp',
-            'acceptedValues' => '13.54.122.1. </code>Select IP ranges with notation: <code>visitIp>13.54.122.0;visitIp<13.54.122.255',
-            'sqlSegment'     => 'log_visit.location_ip',
-            'sqlFilterValue' => array('Piwik\Network\IPUtils', 'stringToBinaryIP'),
-            'permission'     => $isAuthenticatedWithViewAccess,
-        );
-
-        foreach ($segments as &$segment) {
-            $segment['name'] = Piwik::translate($segment['name']);
-            $segment['category'] = Piwik::translate($segment['category']);
-
-            if ($_hideImplementationData) {
-                unset($segment['sqlFilter']);
-                unset($segment['sqlFilterValue']);
-                unset($segment['sqlSegment']);
-            }
-        }
-
-        usort($segments, array($this, 'sortSegments'));
+        $metadata = new SegmentMetadata();
+        $segments = $metadata->getSegmentsMetadata($idSites, $_hideImplementationData, $isAuthenticatedWithViewAccess);
 
         $cache->save($cachKey, $segments);
 
         return $segments;
-    }
-
-    private function sortSegments($row1, $row2)
-    {
-        $customVarCategory = Piwik::translate('CustomVariables_CustomVariables');
-
-        $columns = array('type', 'category', 'name', 'segment');
-        foreach ($columns as $column) {
-            // Keep segments ordered alphabetically inside categories..
-            $type = -1;
-            if ($column == 'name') $type = 1;
-
-            $compare = $type * strcmp($row1[$column], $row2[$column]);
-
-            // hack so that custom variables "page" are grouped together in the doc
-            if ($row1['category'] == $customVarCategory
-                && $row1['category'] == $row2['category']
-            ) {
-                $compare = strcmp($row1['segment'], $row2['segment']);
-                return $compare;
-            }
-            if ($compare != 0) {
-                return $compare;
-            }
-        }
-        return $compare;
     }
 
     /**
@@ -388,254 +244,18 @@ class API extends \Piwik\Plugin\API
     {
         Piwik::checkUserHasViewAccess($idSite);
 
-        $list = WidgetsList::get($idSite);
-        $flat = array();
+        $metadata = new WidgetMetadata();
 
-        $categories = $this->moveWidgetsIntoCategories($list->getWidgets());
-
-        foreach ($list->getWidgets() as $widgetConfig) {
-
-            $widgets = array($widgetConfig);
-            if ($widgetConfig instanceof WidgetContainerConfig) {
-                $widgets = array_merge($widgets, $widgetConfig->getWidgetConfigs());
-            }
-
-            foreach ($widgets as $widget) {
-
-                /** @var WidgetConfig $widget */
-
-                if (!$widget->isWidgetizeable()) {
-                    continue;
-                }
-
-                if (!$widget->getName()) {
-                    continue;
-                }
-                $category   = null;
-                $subcategory = null;
-                if (isset($categories[$widget->getCategory()])) {
-                    $category    = $categories[$widget->getCategory()];
-                    $subcategory = $category->getSubCategory($widget->getSubCategory());
-                    $category    = $this->buildCategoryMetadata($category);
-
-                    if ($subcategory) {
-                        $subcategory = $this->buildSubCategoryMetadata($subcategory);
-                    }
-                }
-
-                $item = array(
-                    'name'        => Piwik::translate($widget->getName()),
-                    'category'    => $category,
-                    'subcategory' => $subcategory,
-                    'uniqueId'    => $widget->getUniqueId(),
-                    'order'       => $widget->getOrder(),
-                    'parameters'  => $this->buildWidgetParameters($widget)
-                );
-                $flat[] = $item;
-            }
-        }
-
-        usort($flat, function ($widgetA, $widgetB) {
-            if ($widgetA['category']['order'] === $widgetB['category']['order']) {
-                if (!empty($widgetA['subcategory']['order']) && !empty($widgetB['category']['order'])) {
-                    if ($widgetA['subcategory']['order'] === $widgetB['subcategory']['order']) {
-                        return 0;
-                    }
-                    return $widgetA['subcategory']['order'] > $widgetB['subcategory']['order'] ? 1 : -1;
-                } elseif (!empty($widgetA['category']['order'])) {
-                    return 1;
-                }
-
-                return -1;
-            }
-
-            return $widgetA['category']['order'] > $widgetB['category']['order'] ? 1 : -1;
-        });
-
-        return $flat;
+        return $metadata->getWidgetMetadata($idSite);
     }
 
-    private function buildWidgetParameters(WidgetConfig $widget)
-    {
-        // todo this should be actually done in WidgetConfig
-        return array('module' => $widget->getModule(),
-            'action' => $widget->getAction(),
-        ) + $widget->getParameters();
-    }
-
-    private function buildCategoryMetadata(Category $category)
-    {
-        return array(
-            'name'  => Piwik::translate($category->getName()),
-            'order' => $category->getOrder(),
-            'id'    => $category->getId()
-        );
-    }
-
-    private function buildSubCategoryMetadata(SubCategory $category)
-    {
-        return array(
-            'name'  => Piwik::translate($category->getName()),
-            'order' => $category->getOrder(),
-            'id'    => $category->getId()
-        );
-    }
-
-    public function getPagesMetadata($idSite)
+    public function getPagesMetadata($idSite, $period, $date)
     {
         Piwik::checkUserHasViewAccess($idSite);
 
-        $widgetsList = WidgetsList::get($idSite);
-        $categories  = $this->moveWidgetsIntoCategories($widgetsList->getWidgets());
-        $categories  = $this->buildPagesMetadata($categories);
+        $metadata = new WidgetMetadata();
 
-        return $categories;
-    }
-
-    /**
-     * @param WidgetConfig[] $widgetConfigs
-     * @return Category[]
-     */
-    private function moveWidgetsIntoCategories($widgetConfigs)
-    {
-        $categories    = Category::getAllCategories();
-        $subcategories = SubCategory::getAllSubCategories();
-
-        /** @var Category[] $all */
-        $all = array();
-        foreach ($categories as $category) {
-            $all[$category->getName()] = $category;
-        }
-
-        // move subcategories into categories
-        foreach ($subcategories as $subcategory) {
-            $category = $subcategory->getCategory();
-            if (!$category) {
-                return;
-            }
-            if (!isset($all[$category])) {
-                $all[$category] = new Category();
-                $all[$category]->setName($category);
-            }
-
-            $all[$category]->addSubCategory($subcategory);
-        }
-
-        // move reports into categories/subcategories and create missing ones if needed
-        foreach ($widgetConfigs as $widgetConfig) {
-            $category    = $widgetConfig->getCategory();
-            $subcategory = $widgetConfig->getSubCategory();
-
-            if (!$category) {
-                continue;
-            }
-
-            if ($widgetConfig instanceof WidgetContainerConfig && !$widgetConfig->getWidgetConfigs()) {
-                // if a container does not contain any widgets, ignore it
-                continue;
-            }
-
-            if (!isset($all[$category])) {
-                $all[$category] = $this->createCategoryForName($category);
-            }
-
-            if (!$subcategory) {
-                continue;
-            }
-
-            if (!$all[$category]->hasSubCategory($subcategory)) {
-                $all[$category]->addSubCategory($this->createSubCategoryForName($category, $subcategory));
-            }
-
-            $all[$category]->getSubCategory($subcategory)->addWidgetConfig($widgetConfig);
-        }
-
-        return $all;
-    }
-
-    private function createCategoryForName($categoryName)
-    {
-        $category = new Category();
-        $category->setName($categoryName);
-        return $category;
-    }
-
-    private function createSubCategoryForName($categoryName, $subCategoryName)
-    {
-        $subcategory = new SubCategory();
-        $subcategory->setCategory($categoryName);
-        $subcategory->setName($subCategoryName);
-        return $subcategory;
-    }
-
-    /**
-     * @param Category[] $categories
-     * @return array
-     */
-    private function buildPagesMetadata($categories)
-    {
-        // format output, todo they need to be sorted by order!
-        $metadata = array();
-
-        foreach ($categories as $category) {
-            foreach ($category->getSubCategories() as $subcategory) {
-                $ca = array(
-                    'uniqueId' => $category->getName() . '.' . $subcategory->getName(),
-                    'category' => $this->buildCategoryMetadata($category),
-                    'subcategory' => $this->buildSubCategoryMetadata($subcategory),
-                    'widgets' => array()
-                );
-
-                foreach ($subcategory->getWidgetConfigs() as $widget) {
-                    /** @var \Piwik\Widget\WidgetConfig $widget */
-                    $config = array(
-                        'name' => Piwik::translate($widget->getName()),
-                        'order' => $widget->getOrder(),
-                        'module' => $widget->getModule(),
-                        'action' => $widget->getAction(),
-                        'parameters' => $this->buildWidgetParameters($widget),
-                        'widget_url' => '?' . http_build_query($this->buildWidgetParameters($widget))
-                    );
-
-                    if ($widget instanceof ReportWidgetConfig) {
-                        // todo this is rather bad, there should be a method that is implemented by widgetConfig to add "configs".
-                        $config['viewDataTable'] = $widget->getDefaultView();
-                        $config['isReport'] = true;
-                    }
-
-                    if ($widget instanceof WidgetContainerConfig) {
-                        $config['layout'] = $widget->getLayout();
-                        $config['isContainer'] = true;
-
-                        // todo we would extract that code into a method and reuse it with above
-                        $children = array();
-                        foreach ($widget->getWidgetConfigs() as $widgetConfig) {
-                            $child = array(
-                                'name' => Piwik::translate($widgetConfig->getName()),
-                                'category' => $this->buildCategoryMetadata($this->createCategoryForName($widgetConfig->getCategory())),
-                                'subcategory' => $this->buildSubCategoryMetadata($this->createSubCategoryForName($widgetConfig->getCategory(), $widgetConfig->getSubCategory())),
-                                'module' => $widgetConfig->getModule(),
-                                'action' => $widgetConfig->getAction(),
-                                'parameters' => $this->buildWidgetParameters($widgetConfig),
-                                'viewDataTable' => $widgetConfig->getDefaultView(),
-                                'order' => $widgetConfig->getOrder(),
-                                'widget_url' => '?' . http_build_query($this->buildWidgetParameters($widgetConfig))
-                            );
-                            $children[] = $child;
-                        }
-                        $config['widgets'] = $children;
-                    }
-
-                    $ca['widgets'][] = $config;
-                }
-
-                if (!empty($ca['widgets'])) {
-                    $metadata[] = $ca;
-                }
-            }
-        }
-
-        return $metadata;
+        return $metadata->getPagesMetadata($idSite);
     }
 
     /**

@@ -155,7 +155,7 @@
         {
             resetPage();
 
-            var pagesPromise = reportingPagesModel.fetchAllPages();
+            var pagesPromise = reportingPagesModel.getAllPages();
             var reportsPromise = reportMetadataModel.fetchReportMetadata();
 
             return pagesPromise.then(function () {

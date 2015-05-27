@@ -3,11 +3,12 @@
     <div ng-show="loading" class="loadingPiwik">
         <img src="plugins/Morpheus/images/loading-blue.gif" alt=""/>{{ 'General_LoadingData'|translate }}
     </div>
-    <div ng-show="loadingFailed">
-        Failed to load content
+    <div ng-show="wrongParams">
+        The request is invalid, missing category and subcategory parameter
     </div>
-
-    <div ng-if="pageContentUrl" onload="pageContentLoaded()" ng-include="pageContentUrl"></div>
+    <div ng-show="done && !pageModel.page">
+        No such page exists
+    </div>
 
     <div ng-repeat="evolutionReport in pageModel.evolutionReports" piwik-widget widget="evolutionReport"></div>
 

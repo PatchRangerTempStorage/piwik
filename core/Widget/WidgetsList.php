@@ -155,6 +155,8 @@ class WidgetsList
 
         $list = new static;
 
+        Piwik::postEvent('Widgets.addWidgets', array($list));
+
         $widgets = Widget::getAllWidgetConfigurations();
 
         $widgetContainerConfigs = WidgetContainerConfig::getAllContainerConfigs();

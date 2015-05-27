@@ -41,6 +41,7 @@ function initDashboard(dashboardId, dashboardLayout) {
 
 function createDashboard() {
     $('#createDashboardName').val('');
+
     piwikHelper.modalConfirm('#createDashboardConfirm', {yes: function () {
         var dashboardName = $('#createDashboardName').val();
         var type = ($('#dashboard_type_empty:checked').length > 0) ? 'empty' : 'default';
@@ -57,32 +58,57 @@ function createDashboard() {
         }, 'post');
         ajaxRequest.setCallback(
             function (id) {
-                $('#dashboardWidgetsArea').dashboard('loadDashboard', id);
+                angular.element(document).injector().invoke(function ($location, reportingMenuModel) {
+
+                    var url = $location.path();
+                    var name = decodeURIComponent(dashboardName);
+                    url = broadcast.updateParamValue('subcategory=' + name, url);
+                    $location.path(url);
+
+                    reportingMenuModel.reloadMenuItems();
+                });
             }
         );
         ajaxRequest.send(true);
     }});
 }
 
+function makeSelectorLastId(domElementId)
+{
+    // there can be many elements with this id, prefer the last one
+    return '[id=' + domElementId + ']:last';
+}
+
 function resetDashboard() {
-    piwikHelper.modalConfirm('#resetDashboardConfirm', {yes: function () { $('#dashboardWidgetsArea').dashboard('resetLayout'); }});
+    piwikHelper.modalConfirm(makeSelectorLastId('resetDashboardConfirm'), {yes:
+        function () { $('#dashboardWidgetsArea').dashboard('resetLayout');
+    }});
 }
 
 function renameDashboard() {
-    $('#newDashboardName').val($('#dashboardWidgetsArea').dashboard('getDashboardName'));
-    piwikHelper.modalConfirm('#renameDashboardConfirm', {yes: function () { $('#dashboardWidgetsArea').dashboard('setDashboardName', $('#newDashboardName').val()); }});
+    $(makeSelectorLastId('newDashboardName')).val($('#dashboardWidgetsArea').dashboard('getDashboardName'));
+
+    piwikHelper.modalConfirm(makeSelectorLastId('renameDashboardConfirm'), {yes: function () {
+        var newDashboardName = $(makeSelectorLastId('newDashboardName')).val();
+        $('#dashboardWidgetsArea').dashboard('setDashboardName', newDashboardName);
+    }});
 }
 
 function removeDashboard() {
-    $('#removeDashboardConfirm').find('h2 span').text($('#dashboardWidgetsArea').dashboard('getDashboardName'));
-    piwikHelper.modalConfirm('#removeDashboardConfirm', {yes: function () { $('#dashboardWidgetsArea').dashboard('removeDashboard'); }});
+    $(makeSelectorLastId('removeDashboardConfirm')).find('h2 span').text($('#dashboardWidgetsArea').dashboard('getDashboardName'));
+
+    piwikHelper.modalConfirm(makeSelectorLastId('removeDashboardConfirm'), {yes: function () {
+        $('#dashboardWidgetsArea').dashboard('removeDashboard');
+    }});
 }
 
 function showChangeDashboardLayoutDialog() {
     $('#columnPreview').find('>div').removeClass('choosen');
     $('#columnPreview').find('>div[layout=' + $('#dashboardWidgetsArea').dashboard('getColumnLayout') + ']').addClass('choosen');
-    piwikHelper.modalConfirm('#changeDashboardLayout', {yes: function () {
-        $('#dashboardWidgetsArea').dashboard('setColumnLayout', $('#changeDashboardLayout').find('.choosen').attr('layout'));
+
+    var id = makeSelectorLastId('changeDashboardLayout');
+    piwikHelper.modalConfirm(id, {yes: function () {
+        $('#dashboardWidgetsArea').dashboard('setColumnLayout', $(id).find('.choosen').attr('layout'));
     }});
 }
 
@@ -95,7 +121,9 @@ function showEmptyDashboardNotification() {
 
 function setAsDefaultWidgets() {
     piwikHelper.modalConfirm('#setAsDefaultWidgetsConfirm', {
-        yes: function () { $('#dashboardWidgetsArea').dashboard('saveLayoutAsDefaultWidgetLayout'); }
+        yes: function () {
+            $('#dashboardWidgetsArea').dashboard('saveLayoutAsDefaultWidgetLayout');
+        }
     });
 }
 

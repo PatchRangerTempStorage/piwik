@@ -12,7 +12,7 @@
     function ReportingMenuController($scope, piwik, $location, $timeout, menuModel){
         function markAllCategoriesAsInactive()
         {
-            angular.forEach($scope.menu, function (cat) {
+            angular.forEach(menuModel.menu, function (cat) {
                 cat.active = false;
                 cat.hover = false;
                 angular.forEach(cat.subcategories, function (subcat) {
@@ -23,8 +23,6 @@
 
         $scope.menuModel = menuModel;
 
-        $scope.menu = {};
-
         var timeoutPromise = null;
 
         $scope.enterCategory = function (category) {
@@ -33,7 +31,7 @@
                 $timeout.cancel(timeoutPromise);
             }
 
-            angular.forEach($scope.menu, function (cat) {
+            angular.forEach(menuModel.menu, function (cat) {
                 cat.hover = false;
             });
 
@@ -46,14 +44,14 @@
                 $timeout.cancel(timeoutPromise);
             }
 
-            angular.forEach($scope.menu, function (cat) {
+            angular.forEach(menuModel.menu, function (cat) {
                 if (!cat.active) {
                     cat.hover = false;
                 }
             });
 
             timeoutPromise = $timeout(function () {
-                angular.forEach($scope.menu, function (cat) {
+                angular.forEach(menuModel.menu, function (cat) {
                     if (cat.active) {
                         cat.hover = true;
                     }
@@ -86,21 +84,13 @@
             }
 
             var url = 'idSite=' + idSite + '&period=' + period + '&date=' + date + '&';
-            var rand = parseInt(Math.random()* 100000, 10); // make sure $locationChangeSuccess will be triggered
-            url += 'random=' + rand+ '&';
             url += subcategory.html_url;
+            url += '&random=' + parseInt(Math.random()* 100000, 10); // make sure $locationChangeSuccess will be triggered
 
             $location.path(url);
         };
 
-        var url = $location.path();
-        url = encodeURI(url);
-        var activeCategory = decodeURIComponent(piwik.broadcast.getParamValue('category', url));
-        var activeSubCategory = decodeURIComponent(piwik.broadcast.getParamValue('subcategory', url));
-
-        menuModel.fetchMenuItems(activeCategory, activeSubCategory).then(function (menu) {
-            $scope.menu = menu;
-
+        menuModel.fetchMenuItems().then(function (menu) {
             if (!piwik.broadcast.isHashExists()) {
                 $scope.loadSubcategory(menu[0], menu[0].subcategories[0]);
             }

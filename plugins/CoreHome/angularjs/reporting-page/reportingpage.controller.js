@@ -11,56 +11,31 @@
 
     function ReportingPageController($scope, piwik, $rootScope, $location, pageModel){
 
-        function isIncludeRequestedFromThisTemplate(event)
-        {
-            // when including scope.pageContentUrl
-            return event.targetScope === event.currentScope || event.targetScope.$parent === event.currentScope;
-        }
-
         pageModel.resetPage();
 
         $scope.pageModel = pageModel;
 
-        $scope.$on("$includeContentError", function(event) {
-            if (isIncludeRequestedFromThisTemplate(event)) {
-                $scope.loadingFailed = true;
-                $scope.loading = false;
-            }
-        });
-
-        $scope.pageContentLoaded = function () {
-            $scope.loadingFailed = false;
-            $scope.loading = false;
-        };
-
-        $scope.$on("$includeContentRequested", function(event) {
-            if (isIncludeRequestedFromThisTemplate(event)) {
-                $scope.loadingFailed = false;
-                $scope.loading = true;
-            }
-        });
-
         $scope.renderPage = function () {
+            $scope.done = false;
+
             pageModel.resetPage();
 
             var category = piwik.broadcast.getValueFromHash('category');
             var subcategory = piwik.broadcast.getValueFromHash('subcategory');
 
             if ((!category || !subcategory)) {
-                var path = $location.path();
-                if (-1 === path.indexOf('module=CoreHome&action=index')) {
-                    // eg if dashboard url is given in hash
-                    $scope.pageContentUrl = '?' + $location.path().substr(1);
-                }
-
+                $scope.wrongParams = true;
                 return;
             }
+
+            $scope.wrongParams = false;
 
             category = decodeURIComponent(category);
             subcategory = decodeURIComponent(subcategory);
 
             pageModel.fetchPage(category, subcategory).then(function () {
                 $scope.loading = false;
+                $scope.done = true;
             });
         }
 
@@ -68,6 +43,7 @@
         $scope.renderPage();
 
         $rootScope.$on('$locationChangeSuccess', function () {
+            // should be handled by $route
             $scope.renderPage();
         });
     }
