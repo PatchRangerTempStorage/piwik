@@ -4,6 +4,8 @@
 
 <div>
 
+    <div piwik-popover-handler></div>
+
     <script type="text/javascript">
     $(function () {
         var widgetized = new widgetize();
@@ -22,7 +24,6 @@
         $('#widgetPreview').widgetPreview({
             onPreviewLoaded: widgetized.callbackAddExportButtonsUnderWidget
         });
-        broadcast.init();
     });
 </script>
 

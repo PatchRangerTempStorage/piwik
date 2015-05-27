@@ -168,6 +168,8 @@ class CoreHome extends \Piwik\Plugin
         $jsFiles[] = "plugins/CoreHome/angularjs/widget-container/widgetcontainer.directive.js";
         $jsFiles[] = "plugins/CoreHome/angularjs/widget/widget.directive.js";
 
+        $jsFiles[] = "plugins/CoreHome/angularjs/popover-handler/popover-handler.directive.js";
+
         $jsFiles[] = "plugins/CoreHome/angularjs/reporting-page/reportingpage.controller.js";
         $jsFiles[] = "plugins/CoreHome/angularjs/reporting-page/reportingpage-model.js";
         $jsFiles[] = "plugins/CoreHome/angularjs/reporting-page/reportingpage.directive.js";

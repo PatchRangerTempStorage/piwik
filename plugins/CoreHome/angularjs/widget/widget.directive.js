@@ -26,18 +26,13 @@
                 return function (scope, element, attrs, ngModel) {
 
                     function getFullWidgetUrl(widget) {
-                        var params_vals = widget.widget_url.substr(1).split("&");
+                        var url = widget.widget_url;
 
                         // available in global scope
-                        var currentHashStr = $location.path();
+                        var search = $location.search();
+                        url+= '&idSite=' + search.idSite + '&period=' + search.period + '&date=' + search.date;
 
-                        if (currentHashStr.length != 0) {
-                            for (var i = 0; i < params_vals.length; i++) {
-                                currentHashStr = piwik.broadcast.updateParamValue(params_vals[i], currentHashStr);
-                            }
-                        }
-
-                        return '?' + currentHashStr.substr(1);
+                        return url;
                     }
 
                     scope.$on("$includeContentError", function(event) {

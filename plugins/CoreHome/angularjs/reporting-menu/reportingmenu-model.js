@@ -24,10 +24,8 @@
         {
             var menu = [];
 
-            var url = $location.path();
-            url = encodeURI(url);
-            var activeCategory = decodeURIComponent(piwik.broadcast.getParamValue('category', url));
-            var activeSubCategory = decodeURIComponent(piwik.broadcast.getParamValue('subcategory', url));
+            var activeCategory = $location.search().category;
+            var activeSubCategory = $location.search().subcategory;
 
             var categoriesHandled = {};
             angular.forEach(pages, function (page, key) {
@@ -57,9 +55,6 @@
                         if (subcategory.id === activeSubCategory) {
                             subcategory.active = true;
                         }
-
-                        // also this rather controller logic, not model logic
-                        subcategory.html_url = 'category=' + categoryId + '&subcategory='+ subcategory.id;
 
                         if (page.widgets && page.widgets[0] && page.widgets[0].parameters.idGoal && page.category.id === 'Goals_Goals') {
                             // we handle a goal

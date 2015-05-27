@@ -3,10 +3,8 @@
     <div ng-show="loading" class="loadingPiwik">
         <img src="plugins/Morpheus/images/loading-blue.gif" alt=""/>{{ 'General_LoadingData'|translate }}
     </div>
-    <div ng-show="wrongParams">
-        The request is invalid, missing category and subcategory parameter
-    </div>
-    <div ng-show="done && !pageModel.page">
+
+    <div ng-show="done && !loading && !pageModel.page">
         No such page exists
     </div>
 

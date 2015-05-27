@@ -9,42 +9,39 @@
 
     ReportingPageController.$inject = ['$scope', 'piwik', '$rootScope', '$location', 'reportingPageModel'];
 
-    function ReportingPageController($scope, piwik, $rootScope, $location, pageModel){
-
+    function ReportingPageController($scope, piwik, $rootScope, $location, pageModel) {
         pageModel.resetPage();
-
         $scope.pageModel = pageModel;
 
-        $scope.renderPage = function () {
-            $scope.done = false;
+        function finishedRendering() {
+            $scope.done = true;
+            $scope.loading = false;
+        }
 
+        $scope.renderPage = function () {
+
+            $scope.done = false;
             pageModel.resetPage();
 
-            var category = piwik.broadcast.getValueFromHash('category');
-            var subcategory = piwik.broadcast.getValueFromHash('subcategory');
+            var category = $location.search().category;
+            var subcategory = $location.search().subcategory;
 
             if ((!category || !subcategory)) {
-                $scope.wrongParams = true;
+                finishedRendering();
                 return;
             }
 
-            $scope.wrongParams = false;
-
-            category = decodeURIComponent(category);
-            subcategory = decodeURIComponent(subcategory);
-
-            pageModel.fetchPage(category, subcategory).then(function () {
-                $scope.loading = false;
-                $scope.done = true;
-            });
+            pageModel.fetchPage(category, subcategory).then(finishedRendering);
         }
 
         $scope.loading = true; // we only set loading on initial load
-        $scope.renderPage();
+        $scope.renderPage(true);
 
         $rootScope.$on('$locationChangeSuccess', function () {
             // should be handled by $route
-            $scope.renderPage();
+            if (!$location.search().popover) {
+                $scope.renderPage();
+            }
         });
     }
 })();

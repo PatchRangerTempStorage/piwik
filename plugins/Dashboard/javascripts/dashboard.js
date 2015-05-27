@@ -60,10 +60,7 @@ function createDashboard() {
             function (id) {
                 angular.element(document).injector().invoke(function ($location, reportingMenuModel) {
 
-                    var url = $location.path();
-                    var name = decodeURIComponent(dashboardName);
-                    url = broadcast.updateParamValue('subcategory=' + name, url);
-                    $location.path(url);
+                    $location.search('subcategory', dashboardName);
 
                     reportingMenuModel.reloadMenuItems();
                 });

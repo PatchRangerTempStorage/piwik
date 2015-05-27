@@ -83,15 +83,18 @@
                 date = broadcast.getValueFromUrl('date');
             }
 
-            var url = 'idSite=' + idSite + '&period=' + period + '&date=' + date + '&';
-            url += subcategory.html_url;
-            url += '&random=' + parseInt(Math.random()* 100000, 10); // make sure $locationChangeSuccess will be triggered
-
-            $location.path(url);
+            $location.search({
+                idSite: idSite,
+                period: period,
+                date: date,
+                category: category.id,
+                subcategory: subcategory.id,
+                random: parseInt(Math.random()* 100000, 10) // make sure $locationChangeSuccess will be triggered
+            });
         };
 
         menuModel.fetchMenuItems().then(function (menu) {
-            if (!piwik.broadcast.isHashExists()) {
+            if (!$location.search().subcategory) {
                 $scope.loadSubcategory(menu[0], menu[0].subcategories[0]);
             }
         });
