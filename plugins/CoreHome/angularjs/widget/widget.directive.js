@@ -30,7 +30,8 @@
 
                         // available in global scope
                         var search = $location.search();
-                        url+= '&idSite=' + search.idSite + '&period=' + search.period + '&date=' + search.date;
+                        url += '&idSite=' + search.idSite + '&period=' + search.period;
+                        url += '&date=' + search.date + '&random=' + parseInt(Math.random() * 10000);
 
                         return url;
                     }

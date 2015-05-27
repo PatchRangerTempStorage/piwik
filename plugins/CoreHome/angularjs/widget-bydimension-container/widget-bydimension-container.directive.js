@@ -30,7 +30,8 @@
 
                         // available in global scope
                         var search = $location.search();
-                        url+= '&idSite=' + search.idSite + '&period=' + search.period + '&date=' + search.date;
+                        url += '&idSite=' + search.idSite + '&period=' + search.period + '&date=' + search.date;
+                        url += '&random=' + parseInt(Math.random() * 10000);
 
                         return url;
                     }
@@ -65,11 +66,7 @@
                     });
 
                     scope.selectWidget = function (widget) {
-                        if (!widget.html_url) {
-                            widget.html_url = getFullWidgetUrl(widget);
-                        } else {
-                            widget.html_url += '&rand=5';
-                        }
+                        widget.html_url = getFullWidgetUrl(widget);
                         scope.selectedWidget = widget;
                     }
 

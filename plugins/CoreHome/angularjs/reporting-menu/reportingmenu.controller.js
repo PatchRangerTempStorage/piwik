@@ -21,6 +21,15 @@
             });
         }
 
+        function getUrlParam(param)
+        {
+            var value = piwik.broadcast.getValueFromHash(param);
+            if (!value) {
+                value = piwik.broadcast.getValueFromUrl(param);
+            }
+            return value;
+        }
+
         $scope.menuModel = menuModel;
 
         var timeoutPromise = null;
@@ -59,38 +68,25 @@
             }, 2000);
         };
 
+        var idSite = getUrlParam('idSite');
+        var period = getUrlParam('period');
+        var date = getUrlParam('date');
+
+        $scope.makeUrl = function (category, subcategory) {
+            return '#?idSite=' + idSite + '&period=' + period + '&date=' + date + '&category=' + category.id + '&subcategory=' + subcategory.id;
+        }
+
         $scope.loadSubcategory = function (category, subcategory) {
+            if (subcategory.active) {
+                // force a $locationChangeSuccess event so page will be re-rendered
+                $location.search('forceChange', '1');
+            }
+
             markAllCategoriesAsInactive();
 
             category.active = true;
             category.hover = true;
             subcategory.active = true;
-
-            // TODO this is a hack to make the dashboard widget go away, need to handle this in a route or so
-            $('.top_controls .dashboard-manager').hide();
-            $('#dashboardWidgetsArea').dashboard('destroy');
-
-            var idSite = broadcast.getValueFromHash('idSite');
-            if (!idSite) {
-                idSite = broadcast.getValueFromUrl('idSite');
-            }
-            var period = broadcast.getValueFromHash('period');
-            if (!period) {
-                period = broadcast.getValueFromUrl('period');
-            }
-            var date   = broadcast.getValueFromHash('date');
-            if (!date) {
-                date = broadcast.getValueFromUrl('date');
-            }
-
-            $location.search({
-                idSite: idSite,
-                period: period,
-                date: date,
-                category: category.id,
-                subcategory: subcategory.id,
-                random: parseInt(Math.random()* 100000, 10) // make sure $locationChangeSuccess will be triggered
-            });
         };
 
         menuModel.fetchMenuItems().then(function (menu) {

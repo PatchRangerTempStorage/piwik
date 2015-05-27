@@ -19,27 +19,28 @@
         }
 
         $scope.renderPage = function () {
-
             $scope.done = false;
-            pageModel.resetPage();
 
             var category = $location.search().category;
             var subcategory = $location.search().subcategory;
 
             if ((!category || !subcategory)) {
+                pageModel.resetPage();
                 finishedRendering();
                 return;
             }
 
-            pageModel.fetchPage(category, subcategory).then(finishedRendering);
+            pageModel.fetchPage(category, subcategory).then(function () {
+                finishedRendering();
+            });
         }
 
         $scope.loading = true; // we only set loading on initial load
-        $scope.renderPage(true);
+        $scope.renderPage();
 
         $rootScope.$on('$locationChangeSuccess', function () {
             // should be handled by $route
-            if (!$location.search().popover) {
+            if (!$location.search().popover && !$location.search().forceChange) {
                 $scope.renderPage();
             }
         });

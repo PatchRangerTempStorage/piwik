@@ -4,7 +4,9 @@
             ng-class="{'sfActive': category.active, 'sfHover': category.hover}"
             ng-mouseenter="enterCategory(category)"
             ng-mouseleave="leaveCategory(category)">
-            <a class="menuItem" ng-click="loadSubcategory(category, category.subcategories[0])">
+            <a class="menuItem"
+               ng-href="{{ makeUrl(category,category.subcategories[0]) }}"
+               ng-click="loadSubcategory(category, category.subcategories[0])">
                 {{ category.name }}
             </a>
             <ul ng-show="(category.subcategories|length) > 1">
@@ -15,12 +17,16 @@
                            ng-repeat="subcat in subcategory.subcategories"
                            title="{{ subcat.tooltip }}"
                            ng-class="{'active': subcat.active}"
+                           ng-href="{{ makeUrl(category,subcat) }}"
                            ng-click='loadSubcategory(category, subcat)'>
                             {{ subcat.name }}
                         </a>
                     </div>
 
-                    <a ng-if="!subcategory.isGroup" class="menuItem" ng-click='loadSubcategory(category, subcategory)'>
+                    <a ng-if="!subcategory.isGroup"
+                       ng-href="{{ makeUrl(category,subcategory) }}"
+                       class="menuItem"
+                       ng-click='loadSubcategory(category, subcategory)'>
                         {{ subcategory.name }}
                     </a>
                 </li>

@@ -50,13 +50,6 @@
             return widget.viewDataTable && widget.viewDataTable === 'tableAllColumns';
         }
 
-        function forceAngularToReRenderPage(widget)
-        {
-            // eg if you click on Referrers=>All Referrers multiple times it would not re-render the page if we do not
-            // create new widget instances as it thinks it is already rendered (which is kinda correct)
-            return angular.copy(widget);
-        }
-
         function buildPage(page)
         {
             if (!page) {
@@ -75,11 +68,11 @@
                 reportsToIgnore = reportsToIgnore.concat(getRelatedReports(widget));
 
                 if (widget.viewDataTable && widget.viewDataTable === 'graphEvolution') {
-                    model.evolutionReports.push(forceAngularToReRenderPage(widget));
+                    model.evolutionReports.push(widget);
                 } else if (widget.viewDataTable && widget.viewDataTable === 'sparklines') {
-                    model.sparklineReports.push(forceAngularToReRenderPage(widget));
+                    model.sparklineReports.push(widget);
                 } else {
-                    widgets.push(forceAngularToReRenderPage(widget));
+                    widgets.push(widget);
                 }
             });
 
@@ -95,7 +88,7 @@
                     var widget = widgets[i];
 
                     if (shouldBeRenderedWithFullWidth(widget)) {
-                        widget.widgets = $filter('orderBy')(widget.widgets, 'order');
+                        widget.widgets = sortWidgets(widget.widgets);
 
                         groupedWidgets.push(widget);
                     } else {
