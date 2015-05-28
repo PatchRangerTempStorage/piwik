@@ -30,6 +30,7 @@ use Piwik\Plugin\Report;
  *
  * @api
  * @method static \Piwik\Menu\MenuReporting getInstance()
+ * @deprecated
  */
 class MenuReporting extends MenuAbstract
 {
@@ -118,26 +119,6 @@ class MenuReporting extends MenuAbstract
      */
     public function getMenu()
     {
-        if (!$this->menu) {
-
-            /**
-             * @ignore
-             * @deprecated
-             */
-            Piwik::postEvent('Menu.Reporting.addItems', array());
-
-            foreach (Report::getAllReports() as $report) {
-                if ($report->isEnabled()) {
-                    $report->configureReportingMenu($this);
-                }
-            }
-
-            foreach ($this->getAllMenus() as $menu) {
-                $menu->configureReportingMenu($this);
-            }
-
-        }
-
-        return parent::getMenu();
+        return array();
     }
 }
