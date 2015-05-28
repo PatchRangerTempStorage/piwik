@@ -14,6 +14,7 @@
         // those sites are going to be displayed
         var model = {
             menu: [],
+            selected: [],
             fetchMenuItems: fetchMenuItems,
             reloadMenuItems: reloadMenuItems
         };

@@ -13,32 +13,43 @@
         pageModel.resetPage();
         $scope.pageModel = pageModel;
 
-        $scope.renderPage = function () {
-            $scope.hasPage = true;
+        var currentCategory = null;
+        var currentSubCategory = null;
 
-            var category = $location.search().category;
-            var subcategory = $location.search().subcategory;
-
-            if ((!category || !subcategory)) {
+        $scope.renderPage = function (category, subcategory) {
+            if (!category || !subcategory) {
                 pageModel.resetPage();
                 $scope.loading = false;
                 return;
             }
 
+            currentCategory = category;
+            currentSubCategory = subcategory;
+
             pageModel.fetchPage(category, subcategory).then(function () {
-                $scope.hasPage = !!pageModel.page;
+                $scope.hasNoPage = !pageModel.page;
                 $scope.loading = false;
             });
         }
 
         $scope.loading = true; // we only set loading on initial load
-        $scope.renderPage();
+
+        $scope.renderPage($location.search().category, $location.search().subcategory);
 
         $rootScope.$on('$locationChangeSuccess', function () {
             // should be handled by $route
-            if (!$location.search().popover && !$location.search().forceChange) {
-                $scope.renderPage();
+            var category = $location.search().category;
+            var subcategory = $location.search().subcategory;
+
+            if (category === currentCategory && subcategory === currentSubCategory) {
+                return;
             }
+
+            $scope.renderPage(category, subcategory);
+        });
+
+        $rootScope.$on('loadPage', function (event, category, subcategory) {
+            $scope.renderPage(category, subcategory);
         });
     }
 })();

@@ -72,9 +72,6 @@
             $('.top_controls .dashboard-manager').hide();
         }
 
-        // makes sure rootScope event will be added only once
-        var added = false;
-
         return {
             restrict: 'A',
             scope: {
@@ -89,11 +86,9 @@
                     fetchDashboard(newVal);
                 });
 
-                if (!added) {
-                    added = true;
-                    // should be rather handled in route or so.
-                    $rootScope.$on('$locationChangeSuccess', clearDashboard);
-                }
+                // should be rather handled in route or so.
+                var unbind = $rootScope.$on('$locationChangeSuccess', clearDashboard);
+                $scope.$on('$destroy', unbind);
             }
         };
     }

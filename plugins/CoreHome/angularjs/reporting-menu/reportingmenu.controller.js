@@ -7,9 +7,9 @@
 (function () {
     angular.module('piwikApp').controller('ReportingMenuController', ReportingMenuController);
 
-    ReportingMenuController.$inject = ['$scope', 'piwik', '$location', '$timeout', 'reportingMenuModel'];
+    ReportingMenuController.$inject = ['$scope', 'piwik', '$location', '$timeout', 'reportingMenuModel', '$rootScope'];
 
-    function ReportingMenuController($scope, piwik, $location, $timeout, menuModel){
+    function ReportingMenuController($scope, piwik, $location, $timeout, menuModel, $rootScope){
         function markAllCategoriesAsInactive()
         {
             angular.forEach(menuModel.menu, function (cat) {
@@ -78,8 +78,7 @@
 
         $scope.loadSubcategory = function (category, subcategory) {
             if (subcategory.active) {
-                // force a $locationChangeSuccess event so page will be re-rendered
-                $location.search('forceChange', '1');
+                $rootScope.$emit('loadPage', category.id, subcategory.id);
             }
 
             markAllCategoriesAsInactive();
