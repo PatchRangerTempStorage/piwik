@@ -24,7 +24,7 @@ class WidgetContainerConfig extends WidgetConfig
     /**
      * @var WidgetConfig[]
      */
-    protected $widgets;
+    protected $widgets = array();
     protected $layout = '';
     protected $id;
 

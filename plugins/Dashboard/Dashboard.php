@@ -34,17 +34,7 @@ class Dashboard extends \Piwik\Plugin
 
     public function addWidgets(WidgetsList $widgetsList)
     {
-        $dashboards = array();
-        $dashboard  = new Dashboard();
-
-        if (!Piwik::isUserIsAnonymous()) {
-            $login = Piwik::getCurrentUserLogin();
-            $dashboards = $dashboard->getAllDashboards($login);
-        }
-
-        if (empty($dashboards)) {
-            $dashboards[] = array('name' => 'Dashboard_Dashboard', 'iddashboard' => 1);
-        }
+        $dashboards = API::getInstance()->getDashboards();
 
         foreach ($dashboards as $dashboard) {
             $config = new WidgetConfig();
@@ -53,7 +43,7 @@ class Dashboard extends \Piwik\Plugin
             $config->setAction('embeddedIndex');
             $config->setCategory('Dashboard_Dashboard');
             $config->setSubCategory($dashboard['name']);
-            $config->setParameters(array('idDashboard' => $dashboard['iddashboard']));
+            $config->setParameters(array('idDashboard' => $dashboard['id']));
             $widgetsList->addWidget($config);
         }
     }
@@ -189,27 +179,6 @@ class Dashboard extends \Piwik\Plugin
             );
         }
 
-
-        $widgetsList = WidgetsList::get();
-
-        foreach ($layoutObject->columns as &$row) {
-            if (!is_array($row)) {
-                $row = array();
-                continue;
-            }
-
-            foreach ($row as $widgetId => $widget) {
-                if (isset($widget->parameters->module)) {
-                    $controllerName = $widget->parameters->module;
-                    $controllerAction = $widget->parameters->action;
-                    if (!$widgetsList->isDefined($controllerName, $controllerAction)) {
-                        unset($row[$widgetId]);
-                    }
-                } else {
-                    unset($row[$widgetId]);
-                }
-            }
-        }
         $layout = $this->encodeLayout($layoutObject);
         return $layout;
     }
@@ -240,6 +209,7 @@ class Dashboard extends \Piwik\Plugin
         $jsFiles[] = "plugins/Dashboard/javascripts/dashboardObject.js";
         $jsFiles[] = "plugins/Dashboard/javascripts/dashboardWidget.js";
         $jsFiles[] = "plugins/Dashboard/javascripts/dashboard.js";
+        $jsFiles[] = "plugins/Dashboard/angularjs/dashboard/dashboard.directive.js";
     }
 
     public function getStylesheetFiles(&$stylesheets)

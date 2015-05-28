@@ -112,7 +112,8 @@
                 }
             }
 
-            model.widgets = groupedWidgets;
+            // angular.copy forces the page to re-render. Otherwise it won't reload some pages
+            model.widgets = angular.copy(groupedWidgets);
         }
 
         function getRelatedReports(widget)

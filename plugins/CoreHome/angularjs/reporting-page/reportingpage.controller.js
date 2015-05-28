@@ -13,25 +13,21 @@
         pageModel.resetPage();
         $scope.pageModel = pageModel;
 
-        function finishedRendering() {
-            $scope.done = true;
-            $scope.loading = false;
-        }
-
         $scope.renderPage = function () {
-            $scope.done = false;
+            $scope.hasPage = true;
 
             var category = $location.search().category;
             var subcategory = $location.search().subcategory;
 
             if ((!category || !subcategory)) {
                 pageModel.resetPage();
-                finishedRendering();
+                $scope.loading = false;
                 return;
             }
 
             pageModel.fetchPage(category, subcategory).then(function () {
-                finishedRendering();
+                $scope.hasPage = !!pageModel.page;
+                $scope.loading = false;
             });
         }
 

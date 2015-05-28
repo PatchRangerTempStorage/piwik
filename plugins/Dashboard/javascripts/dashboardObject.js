@@ -53,36 +53,13 @@
 
             if (options.name) {
                 dashboardName = options.name;
-            } else {
-                methods.fetchDashboardName.apply(this, [dashboardId]);
             }
 
             if (options.layout) {
                 generateLayout(options.layout);
-            } else {
-                methods.loadDashboard.apply(this, [dashboardId]);
             }
 
             return this;
-        },
-
-        fetchDashboardName: function (dashboardId) {
-            if (!dashboardId) {
-                return;
-            }
-
-            var promise;
-            angular.element(document).injector().invoke(function (dashboardsModel) {
-                promise = dashboardsModel.getDashboard(dashboardId).then(function (dashboard) {
-                    if (dashboard) {
-                        dashboardName = dashboard.name;
-                    }
-
-                    return dashboardName;
-                });
-            });
-
-            return promise;
         },
 
         /**
@@ -110,10 +87,10 @@
             dashboardLayout = null;
             dashboardId = dashboardIdToLoad;
 
-            angular.element(document).injector().invoke(function ($location) {
-                methods.fetchDashboardName(dashboardId).then(function (dashboardName) {
-                    $location.search('subcategory', dashboardName);
-                });
+            var element = $('[piwik-dashboard]');
+            var scope = angular.element(element).scope();
+            scope.$apply(function(){
+                element.attr('dashboardid', dashboardIdToLoad);
             });
 
             return this;
@@ -223,6 +200,41 @@
         }
     };
 
+    function removeNonExistingWidgets(layout)
+    {
+        var availableWidgets = widgetsHelper.getAvailableWidgets();
+
+        var existingModuleAction = {};
+        $.each(availableWidgets, function (category, widgets) {
+            $.each(widgets, function (index, widget) {
+                existingModuleAction[widget.module + '.' + widget.action] = true;
+            });
+        });
+
+        var columns = [];
+        $.each(layout.columns, function (i, column) {
+            var widgets = [];
+
+            $.each(column, function (j, widget) {
+                if (!widget.parameters || !widget.parameters.module) {
+                    return;
+                }
+
+                var method = widget.parameters.module + '.' + widget.parameters.action
+                if (existingModuleAction[method]) {
+                    widgets.push(widget);
+                }
+
+            });
+
+            columns[i] = widgets;
+        });
+
+        layout.columns = columns;
+
+        return layout;
+    }
+
     /**
      * Generates the dashboard out of the given layout
      *
@@ -231,6 +243,8 @@
     function generateLayout(layout) {
 
         dashboardLayout = parseLayout(layout);
+        dashboardLayout = removeNonExistingWidgets(dashboardLayout);
+
         piwikHelper.hideAjaxLoading();
         adjustDashboardColumns(dashboardLayout.config.layout);
 

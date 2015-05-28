@@ -42,10 +42,6 @@ class Controller extends \Piwik\Plugin\Controller
 
         $view->dashboardId = Common::getRequestVar('idDashboard', 1, 'int');
 
-        // get the layout via FrontController so controller events are posted
-        $view->dashboardLayout = FrontController::getInstance()->dispatch('Dashboard', 'getDashboardLayout',
-            array($checkToken = false));
-
         return $view;
     }
 

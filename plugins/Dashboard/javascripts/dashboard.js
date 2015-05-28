@@ -5,40 +5,6 @@
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  */
 
-function initDashboard(dashboardId, dashboardLayout) {
-
-    $('.dashboardSettings').show();
-    initTopControls();
-
-    // Embed dashboard
-    if (!$('#topBars').length) {
-        $('.dashboardSettings').after($('#Dashboard'));
-        $('#Dashboard_embeddedIndex_' + dashboardId).addClass('sfHover');
-    }
-
-    widgetsHelper.getAvailableWidgets();
-
-    $('#dashboardWidgetsArea')
-        .on('dashboardempty', showEmptyDashboardNotification)
-        .dashboard({
-            idDashboard: dashboardId,
-            layout: dashboardLayout
-        });
-
-    $('#columnPreview').find('>div').each(function () {
-        var width = [];
-        $('div', this).each(function () {
-            width.push(this.className.replace(/width-/, ''));
-        });
-        $(this).attr('layout', width.join('-'));
-    });
-
-    $('#columnPreview').find('>div').on('click', function () {
-        $('#columnPreview').find('>div').removeClass('choosen');
-        $(this).addClass('choosen');
-    });
-}
-
 function createDashboard() {
     $(makeSelectorLastId('createDashboardName')).val('');
 

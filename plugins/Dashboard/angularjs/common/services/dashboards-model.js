@@ -17,7 +17,8 @@
             dashboards: [],
             getAllDashboards: getAllDashboards,
             reloadAllDashboards: reloadAllDashboards,
-            getDashboard: getDashboard
+            getDashboard: getDashboard,
+            getDashboardLayout: getDashboardLayout
         };
 
         return model;
@@ -33,6 +34,11 @@
                 });
                 return dashboard;
             });
+        }
+
+        function getDashboardLayout(dashboardId)
+        {
+            return piwikApi.fetch({module: 'Dashboard', action: 'getDashboardLayout', idDashboard: dashboardId});
         }
 
         function reloadAllDashboards()

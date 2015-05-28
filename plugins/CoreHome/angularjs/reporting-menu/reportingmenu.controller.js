@@ -73,7 +73,7 @@
         var date = getUrlParam('date');
 
         $scope.makeUrl = function (category, subcategory) {
-            return '#?idSite=' + idSite + '&period=' + period + '&date=' + date + '&category=' + category.id + '&subcategory=' + subcategory.id;
+            return 'idSite=' + idSite + '&period=' + period + '&date=' + date + '&category=' + category.id + '&subcategory=' + subcategory.id;
         }
 
         $scope.loadSubcategory = function (category, subcategory) {
@@ -92,6 +92,7 @@
         menuModel.fetchMenuItems().then(function (menu) {
             if (!$location.search().subcategory) {
                 $scope.loadSubcategory(menu[0], menu[0].subcategories[0]);
+                $location.search($scope.makeUrl(menu[0], menu[0].subcategories[0]));
             }
         });
     }

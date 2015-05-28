@@ -44,12 +44,8 @@
                     }
                 }
 
-                $rootScope.$on('$locationChangeSuccess', function () {
-
-                    // TODO this is a hack to make the dashboard widget go away, need to handle this in a route or so
-                    $('.top_controls .dashboard-manager').hide();
-                    $('#dashboardWidgetsArea').dashboard('destroy');
-
+                function openOrClose()
+                {
                     // should be rather done by routing
                     var popoverParam = $location.search().popover;
                     if (popoverParam) {
@@ -57,7 +53,16 @@
                     } else {
                         close();
                     }
+                }
+
+                $rootScope.$on('$locationChangeSuccess', function () {
+                    // should be rather done by routing
+                    $(function () {
+                        // make sure all popover handles were registered
+                        openOrClose();
+                    });
                 });
+
             }
         };
     }

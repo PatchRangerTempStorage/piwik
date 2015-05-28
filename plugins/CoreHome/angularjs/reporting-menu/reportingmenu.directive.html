@@ -5,7 +5,7 @@
             ng-mouseenter="enterCategory(category)"
             ng-mouseleave="leaveCategory(category)">
             <a class="menuItem"
-               ng-href="{{ makeUrl(category,category.subcategories[0]) }}"
+               ng-href="#?{{ makeUrl(category,category.subcategories[0]) }}"
                ng-click="loadSubcategory(category, category.subcategories[0])">
                 {{ category.name }}
             </a>
@@ -17,14 +17,14 @@
                            ng-repeat="subcat in subcategory.subcategories"
                            title="{{ subcat.tooltip }}"
                            ng-class="{'active': subcat.active}"
-                           ng-href="{{ makeUrl(category,subcat) }}"
+                           ng-href="#?{{ makeUrl(category,subcat) }}"
                            ng-click='loadSubcategory(category, subcat)'>
                             {{ subcat.name }}
                         </a>
                     </div>
 
                     <a ng-if="!subcategory.isGroup"
-                       ng-href="{{ makeUrl(category,subcategory) }}"
+                       ng-href="#?{{ makeUrl(category,subcategory) }}"
                        class="menuItem"
                        ng-click='loadSubcategory(category, subcategory)'>
                         {{ subcategory.name }}

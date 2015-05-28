@@ -1,6 +1,6 @@
 {# This header is for loading the dashboard in stand alone mode #}
 <!DOCTYPE html>
-<html>
+<html id="ng-app" ng-app="piwikApp">
 <head>
     <meta charset="utf-8">
 	<meta http-equiv="x-ua-compatible" content="IE=EDGE,chrome=1" >
@@ -14,4 +14,7 @@
 {% include "_jsGlobalVariables.twig" %}
 {% include "_jsCssIncludes.twig" %}
 </head>
-<body id="standalone">
+<!--[if lt IE 9 ]>
+<body id="standalone" ng-app="app" class="old-ie"> <![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!-->
+<body id="standalone" ng-app="app">

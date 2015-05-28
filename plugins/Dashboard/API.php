@@ -7,10 +7,7 @@
  */
 namespace Piwik\Plugins\Dashboard;
 
-use Piwik\Common;
 use Piwik\Piwik;
-use Piwik\Widget\Widget;
-use Piwik\Widget\WidgetsList;
 
 /**
  * This API is the <a href='http://piwik.org/docs/analytics-api/reference/' rel='noreferrer' target='_blank'>Dashboard API</a>: it gives information about dashboards.
@@ -34,12 +31,10 @@ class API extends \Piwik\Plugin\API
      */
     public function getDashboards()
     {
-        $widgetsList = WidgetsList::get();
-
-        $dashboards = $this->getUserDashboards($widgetsList);
+        $dashboards = $this->getUserDashboards();
 
         if (empty($dashboards)) {
-            $dashboards = array($this->getDefaultDashboard($widgetsList));
+            $dashboards = array($this->getDefaultDashboard());
         }
 
         return $dashboards;
@@ -47,27 +42,24 @@ class API extends \Piwik\Plugin\API
 
     /**
      * Get the default dashboard.
-     *
-     * @return array[]
+     * @return \array[]
      */
-    private function getDefaultDashboard(WidgetsList $widgetsList)
+    private function getDefaultDashboard()
     {
         $defaultLayout = $this->dashboard->getDefaultLayout();
         $defaultLayout = $this->dashboard->decodeLayout($defaultLayout);
+        $defaultDashboard = array('name' => Piwik::translate('Dashboard_Dashboard'), 'layout' => $defaultLayout, 'iddashboard' => 1);
 
-        $defaultDashboard = array('name' => Piwik::translate('Dashboard_Dashboard'), 'layout' => $defaultLayout);
-
-        $widgets = $this->getExistingWidgetsWithinDashboard($defaultDashboard, $widgetsList);
+        $widgets = $this->getVisibleWidgetsWithinDashboard($defaultDashboard);
 
         return $this->buildDashboard($defaultDashboard, $widgets);
     }
 
     /**
      * Get all dashboards which a user has created.
-     *
-     * @return array[]
+     * @return \array[]
      */
-    private function getUserDashboards(WidgetsList $widgetsList)
+    private function getUserDashboards()
     {
         $userLogin = Piwik::getCurrentUserLogin();
         $userDashboards = $this->dashboard->getAllDashboards($userLogin);
@@ -75,14 +67,14 @@ class API extends \Piwik\Plugin\API
         $dashboards = array();
 
         foreach ($userDashboards as $userDashboard) {
-            $widgets = $this->getExistingWidgetsWithinDashboard($userDashboard, $widgetsList);
+            $widgets = $this->getVisibleWidgetsWithinDashboard($userDashboard);
             $dashboards[] = $this->buildDashboard($userDashboard, $widgets);
         }
 
         return $dashboards;
     }
 
-    private function getExistingWidgetsWithinDashboard($dashboard, WidgetsList $widgetsList)
+    private function getVisibleWidgetsWithinDashboard($dashboard)
     {
         $columns = $this->getColumnsFromDashboard($dashboard);
 
@@ -92,7 +84,7 @@ class API extends \Piwik\Plugin\API
         foreach ($columns as $column) {
             foreach ($column as $widget) {
 
-                if ($this->widgetIsNotHidden($widget) && $this->widgetExists($widget, $widgetsList)) {
+                if ($this->widgetIsNotHidden($widget) && !empty($widget->parameters->module)) {
                     $module = $widget->parameters->module;
                     $action = $widget->parameters->action;
 
@@ -106,29 +98,24 @@ class API extends \Piwik\Plugin\API
 
     private function getColumnsFromDashboard($dashboard)
     {
-        if (is_array($dashboard['layout'])) {
+        if (empty($dashboard['layout'])) {
+            return array();
+        }
 
+        if (is_array($dashboard['layout'])) {
             return $dashboard['layout'];
         }
 
-        return $dashboard['layout']->columns;
+        if (!empty($dashboard['layout']->columns)) {
+            return $dashboard['layout']->columns;
+        }
+
+        return array();
     }
 
     private function buildDashboard($dashboard, $widgets)
     {
         return array('name' => $dashboard['name'], 'id' => $dashboard['iddashboard'], 'widgets' => $widgets);
-    }
-
-    private function widgetExists($widget, WidgetsList $widgetsList)
-    {
-        if (empty($widget->parameters->module)) {
-            return false;
-        }
-
-        $module = $widget->parameters->module;
-        $action = $widget->parameters->action;
-
-        return $widgetsList->isDefined($module, $action);
     }
 
     private function widgetIsNotHidden($widget)
