@@ -193,15 +193,12 @@ class UITestFixture extends SqlDump
         $_GET['idSite'] = 1;
 
         // collect widgets & sort them so widget order is not important
-        $allWidgets = array();
-        $widgetsList = Request::processRequest('API.getWidgetMetadata', array(
+        $allWidgets = Request::processRequest('API.getWidgetMetadata', array(
             'idSite' => 1,
-            'period' => 'day',
-            'date' => 'today'
+            'period' => '2012-08-08',
+            'date' => 'year'
         ));
-        foreach ($widgetsList as $category => $widgets) {
-            $allWidgets = array_merge($allWidgets, $widgets);
-        }
+
         usort($allWidgets, function ($lhs, $rhs) {
             return strcmp($lhs['uniqueId'], $rhs['uniqueId']);
         });
@@ -215,7 +212,7 @@ class UITestFixture extends SqlDump
             if ($widget['uniqueId'] == 'widgetSEOgetRank'
                 || $widget['uniqueId'] == 'widgetReferrersgetKeywordsForPage'
                 || $widget['uniqueId'] == 'widgetLivegetVisitorProfilePopup'
-                || $widget['uniqueId'] == 'widgetActionsgetPageTitles'
+                || $widget['uniqueId'] == 'widgetActionsgetPageTitlesmoduleActionsactiongetPageTitlesforceView0viewDataTabletable'
                 || strpos($widget['uniqueId'], 'widgetExample') === 0
             ) {
                 continue;
@@ -266,7 +263,7 @@ class UITestFixture extends SqlDump
         $dashboard = array(
             array(
                 array(
-                    'uniqueId' => "widgetVisitsSummarygetEvolutionGraphcolumnsArray",
+                    'uniqueId' => "widgetVisitsSummarygetEvolutionGraphmoduleVisitsSummaryactiongetEvolutionGraphforceView1viewDataTablegraphEvolutioncolumnsArray",
                     'parameters' => array(
                         'module' => 'VisitsSummary',
                         'action' => 'getEvolutionGraph',
