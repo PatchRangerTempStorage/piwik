@@ -14,7 +14,7 @@ use Piwik\Widget\WidgetConfig;
 use Piwik\Plugins\Goals\API;
 use Piwik\Tests\Framework\Mock\FakeAccess;
 use Piwik\Translate;
-use Piwik\WidgetsList;
+use Piwik\Widget\WidgetsList;
 use Piwik\Tests\Framework\Fixture;
 use Piwik\Tests\Framework\TestCase\IntegrationTestCase;
 
@@ -131,7 +131,9 @@ class WidgetsListTest extends IntegrationTestCase
         $widgets = Request::processRequest('API.getWidgetMetadata');
 
         $this->assertCount(14, $widgets);
-        WidgetsList::remove('SEO', 'NoTeXiStInG');
+
+        $list = WidgetsList::get();
+        $list->remove('SEO', 'NoTeXiStInG');
 
         $widgets = Request::processRequest('API.getWidgetMetadata');
         $this->assertCount(14, $widgets);
@@ -140,12 +142,12 @@ class WidgetsListTest extends IntegrationTestCase
         $this->assertCount(2, $widgets['SEO']);
 
         // TODO FIX ALL THIS
-        WidgetsList::remove('SEO', 'SEO_SeoRankings');
+        $list->remove('SEO', 'SEO_SeoRankings');
         $widgets = Request::processRequest('API.getWidgetMetadata');
 
         $this->assertCount(1, $widgets['SEO']);
 
-        WidgetsList::remove('SEO');
+        $list->remove('SEO');
         $widgets = Request::processRequest('API.getWidgetMetadata');
 
         $this->assertArrayNotHasKey('SEO', $widgets);

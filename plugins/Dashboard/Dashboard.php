@@ -11,6 +11,7 @@ namespace Piwik\Plugins\Dashboard;
 use Piwik\Common;
 use Piwik\Db;
 use Piwik\Piwik;
+use Piwik\Widget\SubCategory;
 use Piwik\Widget\WidgetConfig;
 use Piwik\Widget\WidgetsList;
 
@@ -28,7 +29,8 @@ class Dashboard extends \Piwik\Plugin
             'AssetManager.getStylesheetFiles'        => 'getStylesheetFiles',
             'UsersManager.deleteUser'                => 'deleteDashboardLayout',
             'Translate.getClientSideTranslationKeys' => 'getClientSideTranslationKeys',
-            'Widgets.addWidgets' => 'addWidgets'
+            'Widgets.addWidgets' => 'addWidgets',
+            'SubCategory.addSubCategories' => 'addSubCategories'
         );
     }
 
@@ -42,9 +44,24 @@ class Dashboard extends \Piwik\Plugin
             $config->setModule('Dashboard');
             $config->setAction('embeddedIndex');
             $config->setCategory('Dashboard_Dashboard');
-            $config->setSubCategory($dashboard['name']);
+            $config->setSubCategory($dashboard['id']);
             $config->setParameters(array('idDashboard' => $dashboard['id']));
             $widgetsList->addWidget($config);
+        }
+    }
+
+    public function addSubCategories(&$subcategories)
+    {
+        $dashboards = API::getInstance()->getDashboards();
+
+        $order = 0;
+        foreach ($dashboards as $dashboard) {
+            $config = new SubCategory();
+            $config->setName($dashboard['name']);
+            $config->setCategory('Dashboard_Dashboard');
+            $config->setId($dashboard['id']);
+            $config->setOrder($order);
+            $subcategories[] = $config;
         }
     }
 

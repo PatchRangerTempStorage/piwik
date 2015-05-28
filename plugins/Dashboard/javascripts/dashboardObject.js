@@ -89,7 +89,7 @@
 
             var element = $('[piwik-dashboard]');
             var scope = angular.element(element).scope();
-            scope.$apply(function(){
+            scope.$apply(function() {
                 element.attr('dashboardid', dashboardIdToLoad);
             });
 

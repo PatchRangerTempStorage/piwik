@@ -152,12 +152,12 @@ class WidgetMetadata
         );
     }
 
-    private function buildSubCategoryMetadata(SubCategory $category)
+    private function buildSubCategoryMetadata(SubCategory $subcategory)
     {
         return array(
-            'name'  => Piwik::translate($category->getName()),
-            'order' => $category->getOrder(),
-            'id'    => $category->getId()
+            'name'  => Piwik::translate($subcategory->getName()),
+            'order' => $subcategory->getOrder(),
+            'id'    => $subcategory->getId()
         );
     }
 

@@ -7,6 +7,8 @@
  */
 namespace Piwik\Widget;
 
+use Piwik\Container\StaticContainer;
+use Piwik\Piwik;
 use \Piwik\Plugin\Manager as PluginManager;
 
 /**
@@ -20,6 +22,7 @@ class SubCategory
 {
     protected $category = '';
     protected $name = '';
+    protected $id = '';
 
     /**
      * @var WidgetConfig[]
@@ -36,16 +39,24 @@ class SubCategory
     public function setCategory($category)
     {
         $this->category = $category;
+        return $this;
     }
 
     public function setName($name)
     {
         $this->name = $name;
+        return $this;
     }
 
     public function getOrder()
     {
         return $this->order;
+    }
+
+    public function setOrder($order)
+    {
+        $this->order = $order;
+        return $this;
     }
 
     public function getWidgetConfigs()
@@ -65,21 +76,33 @@ class SubCategory
 
     public function getId()
     {
-        return $this->name;
+        if (empty($this->id)) {
+            return $this->name;
+        }
+
+        return $this->id;
+    }
+
+    public function setId($id)
+    {
+        $this->id = $id;
+        return $this;
     }
 
     /** @return \Piwik\Widget\SubCategory[] */
     public static function getAllSubCategories()
     {
-        $manager = PluginManager::getInstance();
-        // todo move to Piwik\Widget\SubCategory
-        $subcategories = $manager->findMultipleComponents('Widgets/SubCategories', '\\Piwik\\Widget\\SubCategory');
+        $subcategories = array();
 
-        $instances = array();
-        foreach ($subcategories as $subcategory) {
-            $instances[] = new $subcategory;
+        Piwik::postEvent('SubCategory.addSubCategories', array(&$subcategories));
+
+        $manager = PluginManager::getInstance();
+        $classes = $manager->findMultipleComponents('Widgets/SubCategories', '\\Piwik\\Widget\\SubCategory');
+
+        foreach ($classes as $subcategory) {
+            $subcategories[] = StaticContainer::get($subcategory);
         }
 
-        return $instances;
+        return $subcategories;
     }
 }
